@@ -53,12 +53,12 @@ ESP8266HTTPUpdateServer httpUpdateServer;
 #include "FSBrowser.h"
 
 #define DATA_PIN      D5
-#define LED_TYPE      WS2811
-#define COLOR_ORDER   RGB
-#define NUM_LEDS      200
+#define LED_TYPE      WS2812B
+#define COLOR_ORDER   GRB
+#define NUM_LEDS      86
 
 #define MILLI_AMPS         2000 // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
-#define FRAMES_PER_SECOND  120  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
+#define FRAMES_PER_SECOND  60  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
 
 const bool apMode = false;
 
@@ -140,11 +140,66 @@ typedef PatternAndName PatternAndNameList[];
 #include "Twinkles.h"
 #include "TwinkleFOX.h"
 
+typedef struct {
+  CRGBPalette16 palette;
+  String name;
+} PaletteAndName;
+typedef PaletteAndName PaletteAndNameList[];
+
+const CRGBPalette16 palettes[] = {
+  RainbowColors_p,
+  RainbowStripeColors_p,
+  CloudColors_p,
+  LavaColors_p,
+  OceanColors_p,
+  ForestColors_p,
+  PartyColors_p,
+  HeatColors_p
+};
+
+const uint8_t paletteCount = ARRAY_SIZE(palettes);
+
+const String paletteNames[paletteCount] = {
+  "Rainbow",
+  "Rainbow Stripe",
+  "Cloud",
+  "Lava",
+  "Ocean",
+  "Forest",
+  "Party",
+  "Heat",
+};
+
+#include "Map.h"
+#include "Noise.h"
+
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
 PatternAndNameList patterns = {
   { pride,                  "Pride" },
   { colorWaves,             "Color Waves" },
+
+  // matrix patterns
+  { xyTest,    "XY Test" },
+  { xPalette,  "X Axis Palette" },
+  { yPalette,  "Y Axis Palette" },
+  { xyPalette, "XY Axis Palette" },
+  { xGradientPalette,  "X Axis Gradient Palette" },
+  { yGradientPalette,  "Y Axis Gradient Palette" },
+  { xyGradientPalette, "XY Axis Gradient Palette" },
+
+  // noise patterns
+  { fireNoise, "Fire Noise" },
+  { fireNoise2, "Fire Noise 2" },
+  { lavaNoise, "Lava Noise" },
+  { rainbowNoise, "Rainbow Noise" },
+  { rainbowStripeNoise, "Rainbow Stripe Noise" },
+  { partyNoise, "Party Noise" },
+  { forestNoise, "Forest Noise" },
+  { cloudNoise, "Cloud Noise" },
+  { oceanNoise, "Ocean Noise" },
+  { blackAndWhiteNoise, "Black & White Noise" },
+  { blackAndBlueNoise, "Black & Blue Noise" },
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },
@@ -178,40 +233,12 @@ PatternAndNameList patterns = {
   { fire,                   "Fire" },
   { water,                  "Water" },
 
+  { strandTest,             "Strand Test" },
+
   { showSolidColor,         "Solid Color" }
 };
 
 const uint8_t patternCount = ARRAY_SIZE(patterns);
-
-typedef struct {
-  CRGBPalette16 palette;
-  String name;
-} PaletteAndName;
-typedef PaletteAndName PaletteAndNameList[];
-
-const CRGBPalette16 palettes[] = {
-  RainbowColors_p,
-  RainbowStripeColors_p,
-  CloudColors_p,
-  LavaColors_p,
-  OceanColors_p,
-  ForestColors_p,
-  PartyColors_p,
-  HeatColors_p
-};
-
-const uint8_t paletteCount = ARRAY_SIZE(palettes);
-
-const String paletteNames[paletteCount] = {
-  "Rainbow",
-  "Rainbow Stripe",
-  "Cloud",
-  "Lava",
-  "Ocean",
-  "Forest",
-  "Party",
-  "Heat",
-};
 
 #include "Fields.h"
 
@@ -958,14 +985,16 @@ void setBrightness(uint8_t value)
 
 void strandTest()
 {
-  static uint8_t i = 0;
+  uint8_t i = speed;
 
-  EVERY_N_SECONDS(1)
-  {
-    i++;
-    if (i >= NUM_LEDS)
-      i = 0;
-  }
+  if (speed >= NUM_LEDS) speed = NUM_LEDS - 1;
+
+  //  EVERY_N_SECONDS(1)
+  //  {
+  //    i++;
+  //    if (i >= NUM_LEDS)
+  //      i = 0;
+  //  }
 
   fill_solid(leds, NUM_LEDS, CRGB::Black);
 
