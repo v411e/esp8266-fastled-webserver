@@ -1,6 +1,6 @@
 /*
    ESP8266 FastLED WebServer: https://github.com/jasoncoon/esp8266-fastled-webserver
-   Copyright (C) 2015-2018 Jason Coon
+   Copyright (C) 2015-2020 Jason Coon
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -53,9 +53,9 @@ ESP8266HTTPUpdateServer httpUpdateServer;
 #include "FSBrowser.h"
 
 #define DATA_PIN      D5
-#define LED_TYPE      WS2811
-#define COLOR_ORDER   RGB
-#define NUM_LEDS      200
+#define LED_TYPE      WS2812B
+#define COLOR_ORDER   GRB
+#define NUM_LEDS      64
 
 #define MILLI_AMPS         2000 // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
 #define FRAMES_PER_SECOND  120  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
@@ -139,12 +139,15 @@ typedef PatternAndName PatternAndNameList[];
 
 #include "Twinkles.h"
 #include "TwinkleFOX.h"
+#include "Map.h"
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
 PatternAndNameList patterns = {
   { pride,                  "Pride" },
+  { prideFibonacci,         "Pride Fibonacci" },
   { colorWaves,             "Color Waves" },
+  { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },
@@ -177,6 +180,8 @@ PatternAndNameList patterns = {
   { juggle,                 "Juggle" },
   { fire,                   "Fire" },
   { water,                  "Water" },
+
+  { strandTest,             "Strand Test" },
 
   { showSolidColor,         "Solid Color" }
 };
@@ -225,7 +230,7 @@ void setup() {
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);         // for WS2812 (Neopixel)
   //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS); // for APA102 (Dotstar)
   FastLED.setDither(false);
-  FastLED.setCorrection(TypicalLEDStrip);
+  FastLED.setCorrection(TypicalSMD5050);
   FastLED.setBrightness(brightness);
   FastLED.setMaxPowerInVoltsAndMilliamps(5, MILLI_AMPS);
   fill_solid(leds, NUM_LEDS, CRGB::Black);
@@ -958,14 +963,9 @@ void setBrightness(uint8_t value)
 
 void strandTest()
 {
-  static uint8_t i = 0;
+  uint8_t i = speed;
 
-  EVERY_N_SECONDS(1)
-  {
-    i++;
-    if (i >= NUM_LEDS)
-      i = 0;
-  }
+  if (i >= NUM_LEDS) i = NUM_LEDS - 1;
 
   fill_solid(leds, NUM_LEDS, CRGB::Black);
 
@@ -1078,8 +1078,15 @@ void water()
 // Pride2015 by Mark Kriegsman: https://gist.github.com/kriegsman/964de772d64c502760e5
 // This function draws rainbows with an ever-changing,
 // widely-varying set of parameters.
-void pride()
-{
+void pride() {
+  fillWithPride(false);
+}
+
+void prideFibonacci() {
+  fillWithPride(true);
+}
+
+void fillWithPride(bool useFibonacciOrder) {
   static uint16_t sPseudotime = 0;
   static uint16_t sLastMillis = 0;
   static uint16_t sHue16 = 0;
@@ -1113,6 +1120,9 @@ void pride()
     CRGB newcolor = CHSV( hue8, sat8, bri8);
 
     uint16_t pixelnumber = i;
+
+    if (useFibonacciOrder) pixelnumber = fibonacciToPhyscial[i];
+    
     pixelnumber = (NUM_LEDS - 1) - pixelnumber;
 
     nblend( leds[pixelnumber], newcolor, 64);
@@ -1123,7 +1133,7 @@ void radialPaletteShift()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
     // leds[i] = ColorFromPalette( gCurrentPalette, gHue + sin8(i*16), brightness);
-    leds[i] = ColorFromPalette(gCurrentPalette, i + gHue, 255, LINEARBLEND);
+    leds[fibonacciToPhyscial[i]] = ColorFromPalette(gCurrentPalette, i + gHue, 255, LINEARBLEND);
   }
 }
 
@@ -1199,15 +1209,18 @@ uint8_t beatsaw8( accum88 beats_per_minute, uint8_t lowest = 0, uint8_t highest 
   return result;
 }
 
-void colorWaves()
-{
-  colorwaves( leds, NUM_LEDS, gCurrentPalette);
+void colorWaves() {
+  fillWithColorWaves(leds, NUM_LEDS, gCurrentPalette, false);
+}
+
+void colorWavesFibonacci() {
+  fillWithColorWaves(leds, NUM_LEDS, gCurrentPalette, true);
 }
 
 // ColorWavesWithPalettes by Mark Kriegsman: https://gist.github.com/kriegsman/8281905786e8b2632aeb
 // This function draws color waves with an ever-changing,
 // widely-varying set of parameters, using a color palette.
-void colorwaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palette)
+void fillWithColorWaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palette, bool useFibonacciOrder)
 {
   static uint16_t sPseudotime = 0;
   static uint16_t sLastMillis = 0;
@@ -1252,6 +1265,9 @@ void colorwaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palette)
     CRGB newcolor = ColorFromPalette( palette, index, bri8);
 
     uint16_t pixelnumber = i;
+
+    if (useFibonacciOrder) pixelnumber = fibonacciToPhyscial[i];
+    
     pixelnumber = (numleds - 1) - pixelnumber;
 
     nblend( ledarray[pixelnumber], newcolor, 128);
