@@ -52,7 +52,7 @@ ESP8266HTTPUpdateServer httpUpdateServer;
 
 #include "FSBrowser.h"
 
-#define DATA_PIN      D5
+#define DATA_PIN      D1
 #define LED_TYPE      WS2812B
 #define COLOR_ORDER   GRB
 #define NUM_LEDS      64
@@ -170,6 +170,7 @@ typedef PatternAndName PatternAndNameList[];
 #include "Twinkles.h"
 #include "TwinkleFOX.h"
 #include "Map.h"
+#include "Noise.h"
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
@@ -191,6 +192,19 @@ PatternAndNameList patterns = {
   { xGradientPalette,  "X Axis Gradient Palette" },
   { yGradientPalette,  "Y Axis Gradient Palette" },
   { xyGradientPalette, "XY Axis Gradient Palette" },
+
+  // noise patterns
+  { fireNoise, "Fire Noise" },
+  { fireNoise2, "Fire Noise 2" },
+  { lavaNoise, "Lava Noise" },
+  { rainbowNoise, "Rainbow Noise" },
+  { rainbowStripeNoise, "Rainbow Stripe Noise" },
+  { partyNoise, "Party Noise" },
+  { forestNoise, "Forest Noise" },
+  { cloudNoise, "Cloud Noise" },
+  { oceanNoise, "Ocean Noise" },
+  { blackAndWhiteNoise, "Black & White Noise" },
+  { blackAndBlueNoise, "Black & Blue Noise" },
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },
