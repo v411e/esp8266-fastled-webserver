@@ -52,7 +52,7 @@ ESP8266HTTPUpdateServer httpUpdateServer;
 
 #include "FSBrowser.h"
 
-#define DATA_PIN      D1
+#define DATA_PIN      D5
 #define LED_TYPE      WS2812B
 #define COLOR_ORDER   GRB
 #define NUM_LEDS      64
@@ -129,6 +129,36 @@ void dimAll(byte value)
   }
 }
 
+typedef struct {
+  CRGBPalette16 palette;
+  String name;
+} PaletteAndName;
+typedef PaletteAndName PaletteAndNameList[];
+
+const CRGBPalette16 palettes[] = {
+  RainbowColors_p,
+  RainbowStripeColors_p,
+  CloudColors_p,
+  LavaColors_p,
+  OceanColors_p,
+  ForestColors_p,
+  PartyColors_p,
+  HeatColors_p
+};
+
+const uint8_t paletteCount = ARRAY_SIZE(palettes);
+
+const String paletteNames[paletteCount] = {
+  "Rainbow",
+  "Rainbow Stripe",
+  "Cloud",
+  "Lava",
+  "Ocean",
+  "Forest",
+  "Party",
+  "Heat",
+};
+
 typedef void (*Pattern)();
 typedef Pattern PatternList[];
 typedef struct {
@@ -148,6 +178,19 @@ PatternAndNameList patterns = {
   { prideFibonacci,         "Pride Fibonacci" },
   { colorWaves,             "Color Waves" },
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
+
+  // matrix patterns
+  { anglePalette,  "Angle Palette" },
+  { radiusPalette,  "Radius Palette" },
+  { xPalette,  "X Axis Palette" },
+  { yPalette,  "Y Axis Palette" },
+  { xyPalette, "XY Axis Palette" },
+  
+  { angleGradientPalette,  "Angle Gradient Palette" },
+  { radiusGradientPalette,  "Radius Gradient Palette" },
+  { xGradientPalette,  "X Axis Gradient Palette" },
+  { yGradientPalette,  "Y Axis Gradient Palette" },
+  { xyGradientPalette, "XY Axis Gradient Palette" },
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },
@@ -187,36 +230,6 @@ PatternAndNameList patterns = {
 };
 
 const uint8_t patternCount = ARRAY_SIZE(patterns);
-
-typedef struct {
-  CRGBPalette16 palette;
-  String name;
-} PaletteAndName;
-typedef PaletteAndName PaletteAndNameList[];
-
-const CRGBPalette16 palettes[] = {
-  RainbowColors_p,
-  RainbowStripeColors_p,
-  CloudColors_p,
-  LavaColors_p,
-  OceanColors_p,
-  ForestColors_p,
-  PartyColors_p,
-  HeatColors_p
-};
-
-const uint8_t paletteCount = ARRAY_SIZE(palettes);
-
-const String paletteNames[paletteCount] = {
-  "Rainbow",
-  "Rainbow Stripe",
-  "Cloud",
-  "Lava",
-  "Ocean",
-  "Forest",
-  "Party",
-  "Heat",
-};
 
 #include "Fields.h"
 
