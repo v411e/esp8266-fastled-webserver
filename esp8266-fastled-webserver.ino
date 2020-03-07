@@ -1148,7 +1148,7 @@ void fillWithPride(bool useFibonacciOrder) {
 
     uint16_t pixelnumber = i;
 
-    if (useFibonacciOrder) pixelnumber = fibonacciToPhyscial[i];
+    if (useFibonacciOrder) pixelnumber = fibonacciToPhysical[i];
     
     pixelnumber = (NUM_LEDS - 1) - pixelnumber;
 
@@ -1160,7 +1160,7 @@ void radialPaletteShift()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
     // leds[i] = ColorFromPalette( gCurrentPalette, gHue + sin8(i*16), brightness);
-    leds[fibonacciToPhyscial[i]] = ColorFromPalette(gCurrentPalette, i + gHue, 255, LINEARBLEND);
+    leds[fibonacciToPhysical[i]] = ColorFromPalette(gCurrentPalette, i + gHue, 255, LINEARBLEND);
   }
 }
 
@@ -1293,7 +1293,7 @@ void fillWithColorWaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palett
 
     uint16_t pixelnumber = i;
 
-    if (useFibonacciOrder) pixelnumber = fibonacciToPhyscial[i];
+    if (useFibonacciOrder) pixelnumber = fibonacciToPhysical[i];
     
     pixelnumber = (numleds - 1) - pixelnumber;
 
