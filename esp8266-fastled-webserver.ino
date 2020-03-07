@@ -52,7 +52,7 @@ ESP8266HTTPUpdateServer httpUpdateServer;
 
 #include "FSBrowser.h"
 
-#define DATA_PIN      D1
+#define DATA_PIN      D5
 #define LED_TYPE      WS2812B
 #define COLOR_ORDER   GRB
 #define NUM_LEDS      256
@@ -1134,7 +1134,7 @@ void fillWithPride(bool useFibonacciOrder) {
 
     uint16_t pixelnumber = i;
 
-    if (useFibonacciOrder) pixelnumber = fibonacciToPhyscial[i];
+    if (useFibonacciOrder) pixelnumber = fibonacciToPhysical[i];
     
     pixelnumber = (NUM_LEDS - 1) - pixelnumber;
 
@@ -1146,7 +1146,7 @@ void radialPaletteShift()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
     // leds[i] = ColorFromPalette( gCurrentPalette, gHue + sin8(i*16), brightness);
-    leds[fibonacciToPhyscial[i]] = ColorFromPalette(gCurrentPalette, i + gHue, 255, LINEARBLEND);
+    leds[fibonacciToPhysical[i]] = ColorFromPalette(gCurrentPalette, i + gHue, 255, LINEARBLEND);
   }
 }
 
@@ -1278,8 +1278,8 @@ void fillWithColorWaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palett
     CRGB newcolor = ColorFromPalette( palette, index, bri8);
 
     uint16_t pixelnumber = i;
-
-    if (useFibonacciOrder) pixelnumber = fibonacciToPhyscial[i];
+    
+    if (useFibonacciOrder) pixelnumber = fibonacciToPhysical[i];
     
     pixelnumber = (numleds - 1) - pixelnumber;
 
