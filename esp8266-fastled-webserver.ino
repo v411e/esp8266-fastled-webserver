@@ -171,6 +171,7 @@ typedef PatternAndName PatternAndNameList[];
 #include "TwinkleFOX.h"
 #include "Map.h"
 #include "Noise.h"
+#include "Pacifica.h"
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
@@ -179,6 +180,8 @@ PatternAndNameList patterns = {
   { prideFibonacci,         "Pride Fibonacci" },
   { colorWaves,             "Color Waves" },
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
+
+  { pacifica_loop,           "Pacifica" },
 
   // matrix patterns
   { anglePalette,  "Angle Palette" },
@@ -308,7 +311,7 @@ void setup() {
     String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
                    String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
     macID.toUpperCase();
-    String AP_NameString = "ESP8266 Thing " + macID;
+    String AP_NameString = "Fibonacci128 " + macID;
 
     char AP_NameChar[AP_NameString.length() + 1];
     memset(AP_NameChar, 0, AP_NameString.length() + 1);
@@ -508,7 +511,7 @@ void loop() {
   if (power == 0) {
     fill_solid(leds, NUM_LEDS, CRGB::Black);
     FastLED.show();
-    // FastLED.delay(15);
+    delay(1000 / FRAMES_PER_SECOND);
     return;
   }
 
@@ -553,7 +556,7 @@ void loop() {
   FastLED.show();
 
   // insert a delay to keep the framerate modest
-  FastLED.delay(1000 / FRAMES_PER_SECOND);
+  delay(1000 / FRAMES_PER_SECOND);
 }
 
 //void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
