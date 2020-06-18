@@ -27,7 +27,9 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include <NTPClient.h>
 #include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
 //#include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
@@ -50,6 +52,12 @@ extern "C" {
 ESP8266WebServer webServer(80);
 //WebSocketsServer webSocketsServer = WebSocketsServer(81);
 ESP8266HTTPUpdateServer httpUpdateServer;
+
+const long utcOffsetInSeconds = -5 * 60 * 60;
+
+// Define NTP Client to get time
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
 #include "FSBrowser.h"
 
@@ -119,6 +127,9 @@ uint8_t autoplay = 0;
 
 uint8_t autoplayDuration = 10;
 unsigned long autoPlayTimeout = 0;
+
+uint8_t showClock = 0;
+uint8_t clockBackgroundFade = 240;
 
 uint8_t currentPaletteIndex = 0;
 
@@ -190,12 +201,14 @@ PatternAndNameList patterns = {
   { xPalette,  "X Axis Palette" },
   { yPalette,  "Y Axis Palette" },
   { xyPalette, "XY Axis Palette" },
-  
+
   { angleGradientPalette,  "Angle Gradient Palette" },
   { radiusGradientPalette,  "Radius Gradient Palette" },
   { xGradientPalette,  "X Axis Gradient Palette" },
   { yGradientPalette,  "Y Axis Gradient Palette" },
   { xyGradientPalette, "XY Axis Gradient Palette" },
+
+  { drawAnalogClock, "Analog Clock" },
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },
@@ -248,7 +261,7 @@ void setup() {
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);         // for WS2812 (Neopixel)
   //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS); // for APA102 (Dotstar)
   FastLED.setDither(false);
-  FastLED.setCorrection(TypicalSMD5050);
+  //  FastLED.setCorrection(TypicalSMD5050);
   FastLED.setBrightness(brightness);
   FastLED.setMaxPowerInVoltsAndMilliamps(5, MILLI_AMPS);
   fill_solid(leds, NUM_LEDS, CRGB::Black);
@@ -440,6 +453,18 @@ void setup() {
     sendInt(autoplayDuration);
   });
 
+  webServer.on("/showClock", HTTP_POST, []() {
+    String value = webServer.arg("value");
+    setShowClock(value.toInt());
+    sendInt(showClock);
+  });
+
+  webServer.on("/clockBackgroundFade", HTTP_POST, []() {
+    String value = webServer.arg("value");
+    setClockBackgroundFade(value.toInt());
+    sendInt(clockBackgroundFade);
+  });
+
   //list directory
   webServer.on("/list", HTTP_GET, handleFileList);
   //load editor
@@ -466,6 +491,8 @@ void setup() {
   //  Serial.println("Web socket server started");
 
   autoPlayTimeout = millis() + (autoplayDuration * 1000);
+
+  timeClient.begin();
 }
 
 void sendInt(uint8_t value)
@@ -549,10 +576,12 @@ void loop() {
   // Call the current pattern function once, updating the 'leds' array
   patterns[currentPatternIndex].pattern();
 
+  if (showClock) drawAnalogClock();
+
   FastLED.show();
 
   // insert a delay to keep the framerate modest
-  FastLED.delay(1000 / FRAMES_PER_SECOND);
+  delay(1000 / FRAMES_PER_SECOND);
 }
 
 //void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
@@ -991,7 +1020,9 @@ void strandTest()
 {
   uint8_t i = speed;
 
-  if (i >= NUM_LEDS) i = NUM_LEDS - 1;
+  if (i >= NUM_LEDS) {
+    i = NUM_LEDS - 1;
+  };
 
   fill_solid(leds, NUM_LEDS, CRGB::Black);
 
@@ -1148,7 +1179,7 @@ void fillWithPride(bool useFibonacciOrder) {
     uint16_t pixelnumber = i;
 
     if (useFibonacciOrder) pixelnumber = fibonacciToPhysical[i];
-    
+
     pixelnumber = (NUM_LEDS - 1) - pixelnumber;
 
     nblend( leds[pixelnumber], newcolor, 64);
@@ -1160,6 +1191,13 @@ void radialPaletteShift()
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
     // leds[i] = ColorFromPalette( gCurrentPalette, gHue + sin8(i*16), brightness);
     leds[fibonacciToPhysical[i]] = ColorFromPalette(gCurrentPalette, i + gHue, 255, LINEARBLEND);
+  }
+}
+
+void radialPaletteShiftOutward()
+{
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[fibonacciToPhysical[i]] = ColorFromPalette(gCurrentPalette, i - gHue, 255, LINEARBLEND);
   }
 }
 
@@ -1291,9 +1329,9 @@ void fillWithColorWaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palett
     CRGB newcolor = ColorFromPalette( palette, index, bri8);
 
     uint16_t pixelnumber = i;
-    
+
     if (useFibonacciOrder) pixelnumber = fibonacciToPhysical[i];
-    
+
     pixelnumber = (numleds - 1) - pixelnumber;
 
     nblend( ledarray[pixelnumber], newcolor, 128);
