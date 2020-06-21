@@ -81,6 +81,34 @@ String getAutoplayDuration() {
   return String(autoplayDuration);
 }
 
+String getShowClock() {
+  return String(showClock);
+}
+
+String getClockBackgroundFade() {
+  return String(clockBackgroundFade);
+}
+
+void setShowClock(uint8_t value)
+{
+  showClock = value == 0 ? 0 : 1;
+
+  EEPROM.write(9, showClock);
+  EEPROM.commit();
+
+  broadcastInt("showClock", showClock);
+}
+
+void setClockBackgroundFade(uint8_t value)
+{
+  clockBackgroundFade = value;
+
+  EEPROM.write(10, clockBackgroundFade);
+  EEPROM.commit();
+
+  broadcastInt("clockBackgroundFade", clockBackgroundFade);
+}
+
 String getSolidColor() {
   return String(solidColor.r) + "," + String(solidColor.g) + "," + String(solidColor.b);
 }
@@ -114,6 +142,9 @@ FieldList fields = {
   { "autoplay", "Autoplay", SectionFieldType },
   { "autoplay", "Autoplay", BooleanFieldType, 0, 1, getAutoplay },
   { "autoplayDuration", "Autoplay Duration", NumberFieldType, 0, 255, getAutoplayDuration },
+  { "clock", "Clock", SectionFieldType },
+  { "showClock", "Show Clock", BooleanFieldType, 0, 1, getShowClock },
+  { "clockBackgroundFade", "Background Fade", NumberFieldType, 0, 255, getClockBackgroundFade },
   { "solidColor", "Solid Color", SectionFieldType },
   { "solidColor", "Color", ColorFieldType, 0, 255, getSolidColor },
   { "fire", "Fire & Water", SectionFieldType },
@@ -121,7 +152,7 @@ FieldList fields = {
   { "sparking", "Sparking", NumberFieldType, 0, 255, getSparking },
   { "twinkles", "Twinkles", SectionFieldType },
   { "twinkleSpeed", "Twinkle Speed", NumberFieldType, 0, 8, getTwinkleSpeed },
-  { "twinkleDensity", "Twinkle Density", NumberFieldType, 0, 8, getTwinkleDensity },
+  { "twinkleDensity", "Twinkle Density", NumberFieldType, 0, 8, getTwinkleDensity }
 };
 
 uint8_t fieldCount = ARRAY_SIZE(fields);

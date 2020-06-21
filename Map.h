@@ -4,6 +4,74 @@ uint8_t coordsX[NUM_LEDS] = { 140, 189, 208, 214, 208, 146, 168, 180, 180, 162, 
 uint8_t coordsY[NUM_LEDS] = { 128, 114, 91, 63, 34, 0, 21, 48, 76, 106, 78, 47, 25, 11, 5, 38, 35, 42, 61, 101, 87, 69, 68, 78, 98, 143, 118, 102, 98, 122, 131, 152, 179, 209, 255, 230, 202, 174, 148, 142, 181, 210, 235, 252, 235, 234, 224, 203, 170, 183, 201, 205, 198, 181, 134, 157, 171, 173, 153, 145, 138, 120, 93, 63 };
 uint8_t angles[NUM_LEDS] = { 0, 249, 241, 232, 223, 200, 208, 217, 226, 235, 212, 203, 194, 185, 176, 162, 171, 180, 188, 197, 174, 165, 156, 147, 139, 124, 133, 142, 151, 136, 128, 119, 110, 101, 78, 86, 95, 104, 113, 99, 90, 81, 72, 63, 40, 49, 58, 67, 75, 52, 43, 34, 25, 17, 2, 11, 20, 29, 38, 14, 6, 255, 246, 237 };
 
+void setPixelAR(uint8_t angle, uint8_t dAngle, uint8_t radius, uint8_t dRadius, CRGB color)
+{
+  uint16_t amax = qadd8(angle, dAngle);
+  uint8_t amin = qsub8(angle, dAngle);
+
+  uint16_t rmax = qadd8(radius, dRadius);
+  uint16_t rmin = qsub8(radius, dRadius);
+
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    uint8_t o = i;
+
+    uint8_t ao = angles[o];
+
+    if (ao <= amax && ao >= amin) {
+      uint8_t ro = physicalToFibonacci[o];
+
+      if (ro <= rmax && ro >= rmin) {
+        leds[i] = color;
+      }
+    }
+  }
+}
+
+void andPixelAR(uint8_t angle, uint8_t dAngle, uint8_t startRadius, uint8_t endRadius, CRGB color)
+{
+  uint16_t amax = qadd8(angle, dAngle);
+  uint8_t amin = qsub8(angle, dAngle);
+
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    uint8_t o = i;
+
+    uint8_t ao = angles[o];
+
+    if (ao <= amax && ao >= amin) {
+      uint8_t ro = physicalToFibonacci[o];
+
+      if (ro <= endRadius && ro >= startRadius) {
+        leds[i] += color;
+      }
+    }
+  }
+}
+
+void antialiasPixelAR(uint8_t angle, uint8_t dAngle, uint8_t startRadius, uint8_t endRadius, CRGB color)
+{
+  uint16_t amax = qadd8(angle, dAngle);
+  uint8_t amin = qsub8(angle, dAngle);
+
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    uint8_t o = i;
+
+    uint8_t ao = angles[o];
+
+    uint8_t adiff = qsub8(max(ao, angle), min(ao, angle));
+    uint8_t fade = qmul8(adiff, 32);
+    CRGB faded = color;
+    faded.fadeToBlackBy(fade);
+
+    if (ao <= amax && ao >= amin) {
+      uint8_t ro = physicalToFibonacci[o];
+
+      if (ro <= endRadius && ro >= startRadius) {
+        leds[i] += faded;
+      }
+    }
+  }
+}
+
 void anglePalette() {
   uint8_t hues = 1;
 
@@ -104,4 +172,37 @@ void xyGradientPalette() {
 
     leds[i] = ColorFromPalette(gCurrentPalette, beat8(speed) - ((x + y) * hues));
   }
+}
+
+void drawAnalogClock() {
+  float second = timeClient.getSeconds();
+  float minute = timeClient.getMinutes() + (second / 60.0);
+  float hour = timeClient.getHours() + (minute / 60.0);
+
+  static uint8_t hourAngle = 0;
+  static uint8_t minuteAngle = 0;
+  static uint8_t secondAngle = 0;
+
+  const uint8_t hourRadius = 64;
+  const uint8_t minuteRadius = 96;
+  const uint8_t secondRadius = 255;
+
+  const uint8_t handWidth = 64;
+
+  const float degreesPerSecond = 255.0 / 60.0;
+  const float degreesPerMinute = 255.0 / 60.0;
+  const float degreesPerHour = 255.0 / 12.0;
+
+  EVERY_N_MILLIS(100) {
+    hourAngle = 255 - hour * degreesPerHour;
+    minuteAngle = 255 - minute * degreesPerMinute;
+    secondAngle = 255 - second * degreesPerSecond;
+  }
+
+  fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
+
+  antialiasPixelAR(secondAngle, handWidth, 0, secondRadius, CRGB::Blue);
+  antialiasPixelAR(minuteAngle, handWidth, 0, minuteRadius, CRGB::Green);
+  antialiasPixelAR(hourAngle, handWidth, 0, hourRadius, CRGB::Red);
+  leds[0] = CRGB::Red;
 }
