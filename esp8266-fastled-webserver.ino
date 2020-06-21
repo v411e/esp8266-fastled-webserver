@@ -183,6 +183,7 @@ typedef PatternAndName PatternAndNameList[];
 #include "Map.h"
 #include "Noise.h"
 #include "Pacifica.h"
+#include "PacificaFibonacci.h"
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
@@ -193,6 +194,7 @@ PatternAndNameList patterns = {
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
   { pacifica_loop,           "Pacifica" },
+  { pacifica_fibonacci_loop,           "Pacifica Fibonacci" },
 
   // matrix patterns
   { anglePalette,  "Angle Palette" },
