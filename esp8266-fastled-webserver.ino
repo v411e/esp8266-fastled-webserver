@@ -190,6 +190,9 @@ PatternAndNameList patterns = {
   { colorWaves,             "Color Waves" },
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
+  { fireFibonacci,          "Fire Fibonacci" },
+  { waterFibonacci,         "Water Fibonacci" },
+
   // matrix patterns
   { anglePalette,  "Angle Palette" },
   { radiusPalette,  "Radius Palette" },
@@ -1334,4 +1337,28 @@ void palettetest( CRGB* ledarray, uint16_t numleds, const CRGBPalette16& gCurren
   static uint8_t startindex = 0;
   startindex--;
   fill_palette( ledarray, numleds, startindex, (256 / NUM_LEDS) + 1, gCurrentPalette, 255, LINEARBLEND);
+}
+
+// fireFibonacci by Alexx Boo
+void fireFibonacci() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    uint16_t x = coordsX[i];
+    uint16_t y = coordsY[i];
+
+    uint8_t n = qsub8( inoise8((x << 2) - beat88(speed << 2), (y << 2)), x ) ;
+
+    leds[i] = ColorFromPalette(HeatColors_p, n);
+  }
+}
+
+// waterFibonacci by Alexx Boo
+void waterFibonacci() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    uint16_t x = coordsX[i];
+    uint16_t y = coordsY[i];
+
+    uint8_t n = inoise8((x << 2) + beat88(speed << 2), (y << 4)) ;
+
+    leds[i] = ColorFromPalette(IceColors_p, n);
+  }
 }
