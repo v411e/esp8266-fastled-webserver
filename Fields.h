@@ -80,6 +80,7 @@ String getAutoplay() {
 String getAutoplayDuration() {
   return String(autoplayDuration);
 }
+
 String getShowClock() {
   return String(showClock);
 }
@@ -132,7 +133,12 @@ String getTwinkleDensity() {
   return String(twinkleDensity);
 }
 
+String getName() {
+  return nameString;
+}
+
 FieldList fields = {
+  { "name", "Name", LabelFieldType, 0, 0, getName },
   { "power", "Power", BooleanFieldType, 0, 1, getPower },
   { "brightness", "Brightness", NumberFieldType, 1, 255, getBrightness },
   { "pattern", "Pattern", SelectFieldType, 0, patternCount, getPattern, getPatterns },
@@ -151,7 +157,7 @@ FieldList fields = {
   { "sparking", "Sparking", NumberFieldType, 0, 255, getSparking },
   { "twinkles", "Twinkles", SectionFieldType },
   { "twinkleSpeed", "Twinkle Speed", NumberFieldType, 0, 8, getTwinkleSpeed },
-  { "twinkleDensity", "Twinkle Density", NumberFieldType, 0, 8, getTwinkleDensity },
+  { "twinkleDensity", "Twinkle Density", NumberFieldType, 0, 8, getTwinkleDensity }
 };
 
 uint8_t fieldCount = ARRAY_SIZE(fields);
