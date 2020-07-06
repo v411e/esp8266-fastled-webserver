@@ -60,13 +60,15 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
 #include "FSBrowser.h"
 
-#define DATA_PIN      D5
-#define LED_TYPE      WS2812B
-#define COLOR_ORDER   GRB
-#define NUM_LEDS      256
+#define DATA_PIN D5
+#define LED_TYPE WS2812B
+#define COLOR_ORDER GRB
+#define NUM_LEDS 256
 
-#define MILLI_AMPS         2000 // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
-#define FRAMES_PER_SECOND  120  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
+#define MILLI_AMPS 2000       // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
+#define FRAMES_PER_SECOND 120 // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
+
+String nameString;
 
 const bool apMode = false;
 
@@ -79,7 +81,6 @@ const bool apMode = false;
 // Wi-Fi network to connect to (if not in AP mode)
 // char* ssid = "your-ssid";
 // char* password = "your-password";
-
 
 CRGB leds[NUM_LEDS];
 
@@ -181,6 +182,9 @@ typedef PatternAndName PatternAndNameList[];
 #include "Twinkles.h"
 #include "TwinkleFOX.h"
 #include "Map.h"
+//#include "Noise.h"
+#include "Pacifica.h"
+#include "PacificaFibonacci.h"
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
@@ -190,8 +194,11 @@ PatternAndNameList patterns = {
   { colorWaves,             "Color Waves" },
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
-  { fireFibonacci,          "Fire Fibonacci" },
-  { waterFibonacci,         "Water Fibonacci" },
+  {fireFibonacci, "Fire Fibonacci"},
+  {waterFibonacci, "Water Fibonacci"},
+
+  { pacifica_loop,           "Pacifica" },
+  { pacifica_fibonacci_loop, "Pacifica Fibonacci" },
 
   // matrix patterns
   { anglePalette,  "Angle Palette" },
@@ -206,7 +213,30 @@ PatternAndNameList patterns = {
   { yGradientPalette,  "Y Axis Gradient Palette" },
   { xyGradientPalette, "XY Axis Gradient Palette" },
 
+  //  // noise patterns
+  //  { fireNoise, "Fire Noise" },
+  //  { fireNoise2, "Fire Noise 2" },
+  //  { lavaNoise, "Lava Noise" },
+  //  { rainbowNoise, "Rainbow Noise" },
+  //  { rainbowStripeNoise, "Rainbow Stripe Noise" },
+  //  { partyNoise, "Party Noise" },
+  //  { forestNoise, "Forest Noise" },
+  //  { cloudNoise, "Cloud Noise" },
+  //  { oceanNoise, "Ocean Noise" },
+  //  { blackAndWhiteNoise, "Black & White Noise" },
+  //  { blackAndBlueNoise, "Black & Blue Noise" },
+
   { drawAnalogClock, "Analog Clock" },
+
+  { drawSpiralAnalogClock13,  "Spiral Analog Clock 13" },
+  { drawSpiralAnalogClock21,  "Spiral Analog Clock 21" },
+  { drawSpiralAnalogClock34,  "Spiral Analog Clock 34" },
+  { drawSpiralAnalogClock55,  "Spiral Analog Clock 55" },
+  { drawSpiralAnalogClock89,  "Spiral Analog Clock 89" },
+
+  { drawSpiralAnalogClock21and34, "Spiral Analog Clock 21 & 34"},
+  { drawSpiralAnalogClock13_21_and_34, "Spiral Analog Clock 13, 21 & 34"},
+  { drawSpiralAnalogClock34_21_and_13, "Spiral Analog Clock 34, 21 & 13"},
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },
@@ -256,7 +286,7 @@ void setup() {
   delay(100);
   Serial.setDebugOutput(true);
 
-  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);         // for WS2812 (Neopixel)
+  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS); // for WS2812 (Neopixel)
   //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS); // for APA102 (Dotstar)
   FastLED.setDither(false);
   //  FastLED.setCorrection(TypicalSMD5050);
@@ -299,33 +329,37 @@ void setup() {
   //disabled due to https://github.com/jasoncoon/esp8266-fastled-webserver/issues/62
   //initializeWiFi();
 
+  // Do a little work to get a unique-ish name. Get the
+  // last two bytes of the MAC (HEX'd)":
+  uint8_t mac[WL_MAC_ADDR_LENGTH];
+  WiFi.softAPmacAddress(mac);
+  String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
+                 String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
+  macID.toUpperCase();
+
+  nameString = "Fibonacci256 " + macID;
+
+  char nameChar[nameString.length() + 1];
+  memset(nameChar, 0, nameString.length() + 1);
+
+  for (int i = 0; i < nameString.length(); i++)
+    nameChar[i] = nameString.charAt(i);
+
+  Serial.printf("Name: %s\n", nameChar );
+
   if (apMode)
   {
     WiFi.mode(WIFI_AP);
 
-    // Do a little work to get a unique-ish name. Append the
-    // last two bytes of the MAC (HEX'd) to "Thing-":
-    uint8_t mac[WL_MAC_ADDR_LENGTH];
-    WiFi.softAPmacAddress(mac);
-    String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
-                   String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
-    macID.toUpperCase();
-    String AP_NameString = "Fibonacci256 " + macID;
+    WiFi.softAP(nameChar, WiFiAPPSK);
 
-    char AP_NameChar[AP_NameString.length() + 1];
-    memset(AP_NameChar, 0, AP_NameString.length() + 1);
-
-    for (int i = 0; i < AP_NameString.length(); i++)
-      AP_NameChar[i] = AP_NameString.charAt(i);
-
-    WiFi.softAP(AP_NameChar, WiFiAPPSK);
-
-    Serial.printf("Connect to Wi-Fi access point: %s\n", AP_NameChar);
+    Serial.printf("Connect to Wi-Fi access point: %s\n", nameChar);
     Serial.println("and open http://192.168.4.1 in your browser");
   }
   else
   {
     WiFi.mode(WIFI_STA);
+    WiFi.hostname(nameString);
     Serial.printf("Connecting to %s\n", ssid);
     if (String(WiFi.SSID()) != String(ssid)) {
       WiFi.begin(ssid, password);
@@ -336,6 +370,7 @@ void setup() {
 
   webServer.on("/all", HTTP_GET, []() {
     String json = getFieldsJson(fields, fieldCount);
+    webServer.sendHeader("Content-Type", "application/json");
     webServer.send(200, "text/json", json);
   });
 
@@ -557,7 +592,7 @@ void loop() {
   EVERY_N_MILLISECONDS(40) {
     // slowly blend the current palette to the next
     nblendPaletteTowardPalette( gCurrentPalette, gTargetPalette, 8);
-    gHue++;  // slowly cycle the "base color" through the rainbow
+    gHue++; // slowly cycle the "base color" through the rainbow
   }
 
   if (autoplay && (millis() > autoPlayTimeout)) {
@@ -852,6 +887,9 @@ void loadSettings()
     currentPaletteIndex = 0;
   else if (currentPaletteIndex >= paletteCount)
     currentPaletteIndex = paletteCount - 1;
+
+  showClock = EEPROM.read(9);
+  clockBackgroundFade = EEPROM.read(10);
 }
 
 void setPower(uint8_t value)
@@ -1082,16 +1120,16 @@ void bpm()
 
 void juggle()
 {
-  static uint8_t    numdots =   4; // Number of dots in use.
-  static uint8_t   faderate =   2; // How long should the trails be. Very low value = longer trails.
-  static uint8_t     hueinc =  255 / numdots - 1; // Incremental change in hue between each dot.
-  static uint8_t    thishue =   0; // Starting hue.
-  static uint8_t     curhue =   0; // The current hue
-  static uint8_t    thissat = 255; // Saturation of the colour.
-  static uint8_t thisbright = 255; // How bright should the LED/display be.
-  static uint8_t   basebeat =   5; // Higher = faster movement.
+  static uint8_t numdots = 4;                // Number of dots in use.
+  static uint8_t faderate = 2;               // How long should the trails be. Very low value = longer trails.
+  static uint8_t hueinc = 255 / numdots - 1; // Incremental change in hue between each dot.
+  static uint8_t thishue = 0;                // Starting hue.
+  static uint8_t curhue = 0;                 // The current hue
+  static uint8_t thissat = 255;              // Saturation of the colour.
+  static uint8_t thisbright = 255;           // How bright should the LED/display be.
+  static uint8_t basebeat = 5;               // Higher = faster movement.
 
-  static uint8_t lastSecond =  99;  // Static variable, means it's only defined once. This is our 'debounce' variable.
+  static uint8_t lastSecond = 99;              // Static variable, means it's only defined once. This is our 'debounce' variable.
   uint8_t secondHand = (millis() / 1000) % 30; // IMPORTANT!!! Change '30' to a different value to change duration of the loop.
 
   if (lastSecond != secondHand) { // Debounce to make sure we're not repeating an assignment.
@@ -1150,7 +1188,7 @@ void fillWithPride(bool useFibonacciOrder) {
 
   uint16_t ms = millis();
   uint16_t deltams = ms - sLastMillis ;
-  sLastMillis  = ms;
+  sLastMillis = ms;
   sPseudotime += deltams * msmultiplier;
   sHue16 += deltams * beatsin88( 400, 5, 9);
   uint16_t brightnesstheta16 = sPseudotime;
@@ -1159,7 +1197,7 @@ void fillWithPride(bool useFibonacciOrder) {
     hue16 += hueinc16;
     uint8_t hue8 = hue16 / 256;
 
-    brightnesstheta16  += brightnessthetainc16;
+    brightnesstheta16 += brightnessthetainc16;
     uint16_t b16 = sin16( brightnesstheta16  ) + 32768;
 
     uint16_t bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536;
@@ -1292,7 +1330,7 @@ void fillWithColorWaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palett
 
   uint16_t ms = millis();
   uint16_t deltams = ms - sLastMillis ;
-  sLastMillis  = ms;
+  sLastMillis = ms;
   sPseudotime += deltams * msmultiplier;
   sHue16 += deltams * beatsin88( 400, 5, 9);
   uint16_t brightnesstheta16 = sPseudotime;
@@ -1307,7 +1345,7 @@ void fillWithColorWaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palett
       hue8 = h16_128 >> 1;
     }
 
-    brightnesstheta16  += brightnessthetainc16;
+    brightnesstheta16 += brightnessthetainc16;
     uint16_t b16 = sin16( brightnesstheta16  ) + 32768;
 
     uint16_t bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536;
@@ -1339,25 +1377,23 @@ void palettetest( CRGB* ledarray, uint16_t numleds, const CRGBPalette16& gCurren
   fill_palette( ledarray, numleds, startindex, (256 / NUM_LEDS) + 1, gCurrentPalette, 255, LINEARBLEND);
 }
 
-// fireFibonacci by Alexx Boo
 void fireFibonacci() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
     uint16_t x = coordsX[i];
     uint16_t y = coordsY[i];
 
-    uint8_t n = qsub8( inoise8((x << 2) - beat88(speed << 2), (y << 2)), x ) ;
+    uint8_t n = qsub8( inoise8((x << 2) - beat88(speed << 2), (y << 2)), x );
 
     leds[i] = ColorFromPalette(HeatColors_p, n);
   }
 }
 
-// waterFibonacci by Alexx Boo
 void waterFibonacci() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
     uint16_t x = coordsX[i];
     uint16_t y = coordsY[i];
 
-    uint8_t n = inoise8((x << 2) + beat88(speed << 2), (y << 4)) ;
+    uint8_t n = inoise8((x << 2) + beat88(speed << 2), (y << 4));
 
     leds[i] = ColorFromPalette(IceColors_p, n);
   }
