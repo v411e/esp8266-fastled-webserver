@@ -68,6 +68,8 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 #define MILLI_AMPS         2000 // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
 #define FRAMES_PER_SECOND  120  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
 
+String nameString;
+
 const bool apMode = false;
 
 #include "Secrets.h" // this file is intentionally not included in the sketch, so nobody accidentally commits their secret information.
@@ -79,7 +81,6 @@ const bool apMode = false;
 // Wi-Fi network to connect to (if not in AP mode)
 // char* ssid = "your-ssid";
 // char* password = "your-password";
-
 
 CRGB leds[NUM_LEDS];
 
@@ -193,8 +194,11 @@ PatternAndNameList patterns = {
   { colorWaves,             "Color Waves" },
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
+  {fireFibonacci, "Fire Fibonacci"},
+  {waterFibonacci, "Water Fibonacci"},
+
   { pacifica_loop,           "Pacifica" },
-  { pacifica_fibonacci_loop,           "Pacifica Fibonacci" },
+  { pacifica_fibonacci_loop, "Pacifica Fibonacci" },
 
   // matrix patterns
   { anglePalette,  "Angle Palette" },
@@ -221,8 +225,18 @@ PatternAndNameList patterns = {
   { oceanNoise, "Ocean Noise" },
   { blackAndWhiteNoise, "Black & White Noise" },
   { blackAndBlueNoise, "Black & Blue Noise" },
-  
+
   { drawAnalogClock, "Analog Clock" },
+
+  { drawSpiralAnalogClock13,  "Spiral Analog Clock 13" },
+  { drawSpiralAnalogClock21,  "Spiral Analog Clock 21" },
+  { drawSpiralAnalogClock34,  "Spiral Analog Clock 34" },
+  { drawSpiralAnalogClock55,  "Spiral Analog Clock 55" },
+  { drawSpiralAnalogClock89,  "Spiral Analog Clock 89" },
+
+  { drawSpiralAnalogClock21and34, "Spiral Analog Clock 21 & 34"},
+  { drawSpiralAnalogClock13_21_and_34, "Spiral Analog Clock 13, 21 & 34"},
+  { drawSpiralAnalogClock34_21_and_13, "Spiral Analog Clock 34, 21 & 13"},
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },
@@ -275,7 +289,7 @@ void setup() {
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);         // for WS2812 (Neopixel)
   //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS); // for APA102 (Dotstar)
   FastLED.setDither(false);
-//  FastLED.setCorrection(TypicalSMD5050);
+  //  FastLED.setCorrection(TypicalSMD5050);
   FastLED.setBrightness(brightness);
   FastLED.setMaxPowerInVoltsAndMilliamps(5, MILLI_AMPS);
   fill_solid(leds, NUM_LEDS, CRGB::Black);
@@ -315,33 +329,37 @@ void setup() {
   //disabled due to https://github.com/jasoncoon/esp8266-fastled-webserver/issues/62
   //initializeWiFi();
 
+  // Do a little work to get a unique-ish name. Get the
+  // last two bytes of the MAC (HEX'd)":
+  uint8_t mac[WL_MAC_ADDR_LENGTH];
+  WiFi.softAPmacAddress(mac);
+  String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
+                 String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
+  macID.toUpperCase();
+
+  nameString = "Fibonacci128 " + macID;
+
+  char nameChar[nameString.length() + 1];
+  memset(nameChar, 0, nameString.length() + 1);
+
+  for (int i = 0; i < nameString.length(); i++)
+    nameChar[i] = nameString.charAt(i);
+
+  Serial.printf("Name: %s\n", nameChar );
+
   if (apMode)
   {
     WiFi.mode(WIFI_AP);
 
-    // Do a little work to get a unique-ish name. Append the
-    // last two bytes of the MAC (HEX'd) to "Thing-":
-    uint8_t mac[WL_MAC_ADDR_LENGTH];
-    WiFi.softAPmacAddress(mac);
-    String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
-                   String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
-    macID.toUpperCase();
-    String AP_NameString = "Fibonacci128 " + macID;
+    WiFi.softAP(nameChar, WiFiAPPSK);
 
-    char AP_NameChar[AP_NameString.length() + 1];
-    memset(AP_NameChar, 0, AP_NameString.length() + 1);
-
-    for (int i = 0; i < AP_NameString.length(); i++)
-      AP_NameChar[i] = AP_NameString.charAt(i);
-
-    WiFi.softAP(AP_NameChar, WiFiAPPSK);
-
-    Serial.printf("Connect to Wi-Fi access point: %s\n", AP_NameChar);
+    Serial.printf("Connect to Wi-Fi access point: %s\n", nameChar);
     Serial.println("and open http://192.168.4.1 in your browser");
   }
   else
   {
     WiFi.mode(WIFI_STA);
+    WiFi.hostname(nameString);
     Serial.printf("Connecting to %s\n", ssid);
     if (String(WiFi.SSID()) != String(ssid)) {
       WiFi.begin(ssid, password);
@@ -352,6 +370,7 @@ void setup() {
 
   webServer.on("/all", HTTP_GET, []() {
     String json = getFieldsJson(fields, fieldCount);
+    webServer.sendHeader("Content-Type", "application/json");
     webServer.send(200, "text/json", json);
   });
 
@@ -501,7 +520,7 @@ void setup() {
   //  Serial.println("Web socket server started");
 
   autoPlayTimeout = millis() + (autoplayDuration * 1000);
-  
+
   timeClient.begin();
 }
 
@@ -536,7 +555,7 @@ void loop() {
   webServer.handleClient();
 
   timeClient.update();
-  
+
   //  handleIrInput();
 
   if (power == 0) {
@@ -1356,4 +1375,26 @@ void palettetest( CRGB* ledarray, uint16_t numleds, const CRGBPalette16& gCurren
   static uint8_t startindex = 0;
   startindex--;
   fill_palette( ledarray, numleds, startindex, (256 / NUM_LEDS) + 1, gCurrentPalette, 255, LINEARBLEND);
+}
+
+void fireFibonacci() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    uint16_t x = coordsX[i];
+    uint16_t y = coordsY[i];
+
+    uint8_t n = qsub8( inoise8((x << 2) - beat88(speed << 2), (y << 2)), x );
+
+    leds[i] = ColorFromPalette(HeatColors_p, n);
+  }
+}
+
+void waterFibonacci() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    uint16_t x = coordsX[i];
+    uint16_t y = coordsY[i];
+
+    uint8_t n = inoise8((x << 2) + beat88(speed << 2), (y << 4));
+
+    leds[i] = ColorFromPalette(IceColors_p, n);
+  }
 }

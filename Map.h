@@ -4,6 +4,35 @@ uint8_t coordsX[NUM_LEDS] = { 137, 170, 182, 186, 182, 172, 156, 135, 110, 83, 2
 uint8_t coordsY[NUM_LEDS] = { 130, 121, 105, 86, 66, 47, 31, 19, 13, 13, 55, 39, 30, 28, 33, 43, 57, 75, 95, 115, 96, 75, 60, 50, 46, 49, 59, 74, 96, 122, 166, 139, 114, 93, 78, 69, 67, 72, 85, 112, 102, 90, 89, 96, 110, 129, 152, 177, 203, 227, 247, 228, 207, 184, 161, 140, 123, 112, 109, 126, 132, 146, 165, 185, 206, 225, 240, 251, 255, 224, 235, 240, 237, 229, 216, 199, 181, 161, 143, 139, 166, 186, 202, 215, 221, 222, 216, 204, 185, 115, 142, 166, 184, 197, 203, 202, 195, 181, 158, 167, 180, 182, 178, 166, 148, 126, 101, 74, 21, 42, 66, 91, 114, 134, 150, 159, 160, 147, 141, 137, 124, 106, 85, 63, 42, 24, 9, 0 };
 uint8_t angles[NUM_LEDS] = { 0, 247, 239, 230, 221, 212, 203, 194, 186, 177, 154, 163, 171, 180, 189, 198, 207, 216, 224, 233, 210, 201, 192, 184, 175, 166, 157, 148, 139, 131, 116, 125, 134, 143, 152, 160, 169, 178, 187, 196, 173, 164, 155, 146, 137, 129, 120, 111, 102, 93, 79, 88, 97, 105, 114, 123, 132, 141, 150, 135, 126, 118, 109, 100, 91, 82, 73, 65, 56, 33, 42, 50, 59, 68, 77, 86, 95, 103, 112, 98, 89, 80, 71, 63, 54, 45, 36, 27, 18, 252, 4, 13, 22, 31, 39, 48, 57, 66, 75, 52, 43, 34, 25, 16, 8, 255, 246, 237, 214, 223, 232, 241, 250, 2, 11, 20, 29, 37, 14, 5, 253, 244, 235, 226, 218, 209, 200, 191 };
 
+void drawSpiralLine(uint8_t angle, int step, CRGB color)
+{
+  int startIndex = 0;
+  int smallestAngleDifference = 255;
+
+  // find the outermost led closest to the desired angle
+  for (int i = 0; i < NUM_LEDS; i++) {
+    int j = physicalToFibonacci[i];
+    if (j < step) continue;
+    if (!(j + step >= NUM_LEDS)) continue; // not outermost
+    uint8_t a = angles[i];
+    if (a == angle) startIndex = i;
+    else if (angle - a > 0 && angle - a < smallestAngleDifference) {
+      smallestAngleDifference = angle - a;
+      startIndex = i;
+    }
+  }
+
+  // draw the starting LED
+  leds[startIndex] += color;
+
+  // draw to center from outer start
+  int f = physicalToFibonacci[startIndex];
+  while (f - step >= 0 && f - step < NUM_LEDS) {
+    leds[fibonacciToPhysical[f]] += color;
+    f = f - step;
+  }
+}
+
 void setPixelAR(uint8_t angle, uint8_t dAngle, uint8_t radius, uint8_t dRadius, CRGB color)
 {
   uint16_t amax = qadd8(angle, dAngle);
@@ -205,4 +234,111 @@ void drawAnalogClock() {
   antialiasPixelAR(minuteAngle, handWidth, 0, minuteRadius, CRGB::Green);
   antialiasPixelAR(hourAngle, handWidth, 0, hourRadius, CRGB::Red);
   leds[0] = CRGB::Red;
+}
+
+void drawSpiralAnalogClock(uint8_t step) {
+  float second = timeClient.getSeconds();
+  float minute = timeClient.getMinutes() + (second / 60.0);
+  float hour = timeClient.getHours() + (minute / 60.0);
+
+  static uint8_t hourAngle = 0;
+  static uint8_t minuteAngle = 0;
+  static uint8_t secondAngle = 0;
+
+  const float degreesPerSecond = 255.0 / 60.0;
+  const float degreesPerMinute = 255.0 / 60.0;
+  const float degreesPerHour = 255.0 / 12.0;
+
+  EVERY_N_MILLIS(100) {
+    hourAngle = 255 - hour * degreesPerHour;
+    minuteAngle = 255 - minute * degreesPerMinute;
+    secondAngle = 255 - second * degreesPerSecond;
+  }
+
+  drawSpiralLine(secondAngle, step, CRGB(0, 0, 2));
+  drawSpiralLine(minuteAngle, step, CRGB(0, 2, 0));
+  drawSpiralLine(hourAngle, step, CRGB(2, 0, 0));
+}
+
+void drawSpiralAnalogClock13() {
+  fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
+  drawSpiralAnalogClock(13);
+}
+
+void drawSpiralAnalogClock21() {
+  fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
+  drawSpiralAnalogClock(21);
+}
+
+void drawSpiralAnalogClock34() {
+  fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
+  drawSpiralAnalogClock(34);
+}
+
+void drawSpiralAnalogClock55() {
+  fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
+  drawSpiralAnalogClock(55);
+}
+
+void drawSpiralAnalogClock89() {
+  fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
+  drawSpiralAnalogClock(89);
+}
+
+void drawSpiralAnalogClock21and34() {
+  fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
+  drawSpiralAnalogClock(21);
+  drawSpiralAnalogClock(34);
+}
+
+void drawSpiralAnalogClock13_21_and_34() {
+  float second = timeClient.getSeconds();
+  float minute = timeClient.getMinutes() + (second / 60.0);
+  float hour = timeClient.getHours() + (minute / 60.0);
+
+  static uint8_t hourAngle = 0;
+  static uint8_t minuteAngle = 0;
+  static uint8_t secondAngle = 0;
+
+  const float degreesPerSecond = 255.0 / 60.0;
+  const float degreesPerMinute = 255.0 / 60.0;
+  const float degreesPerHour = 255.0 / 12.0;
+
+  EVERY_N_MILLIS(100) {
+    hourAngle = 255 - hour * degreesPerHour;
+    minuteAngle = 255 - minute * degreesPerMinute;
+    secondAngle = 255 - second * degreesPerSecond;
+  }
+
+  fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
+  
+  drawSpiralLine(secondAngle, 13, CRGB(0, 0, 2));
+  drawSpiralLine(minuteAngle, 21, CRGB(0, 2, 0));
+  drawSpiralLine(hourAngle, 34, CRGB(2, 0, 0));
+}
+
+void drawSpiralAnalogClock34_21_and_13() {
+  float second = timeClient.getSeconds();
+  float minute = timeClient.getMinutes() + (second / 60.0);
+  float hour = timeClient.getHours() + (minute / 60.0);
+
+  static uint8_t hourAngle = 0;
+  static uint8_t minuteAngle = 0;
+  static uint8_t secondAngle = 0;
+
+  const float degreesPerSecond = 255.0 / 60.0;
+  const float degreesPerMinute = 255.0 / 60.0;
+  const float degreesPerHour = 255.0 / 12.0;
+
+  EVERY_N_MILLIS(100) {
+    hourAngle = 255 - hour * degreesPerHour;
+    minuteAngle = 255 - minute * degreesPerMinute;
+    secondAngle = 255 - second * degreesPerSecond;
+  }
+
+  fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
+  
+  drawSpiralLine(secondAngle, 34, CRGB(0, 0, 2));
+  drawSpiralLine(minuteAngle, 21, CRGB(0, 2, 0));
+  drawSpiralLine(hourAngle, 13, CRGB(2, 0, 0));
 }
