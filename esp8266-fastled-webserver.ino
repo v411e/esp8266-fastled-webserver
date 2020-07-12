@@ -64,7 +64,7 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 #define DATA_PIN D5
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
-#define NUM_LEDS 256
+#define NUM_LEDS 34
 
 #define MILLI_AMPS 2000       // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
 #define FRAMES_PER_SECOND 120 // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
@@ -342,7 +342,7 @@ void setup() {
                  String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
   macID.toUpperCase();
 
-  nameString = "ESP8266 " + macID;
+  nameString = "Fibonacci32 " + macID;
 
   char nameChar[nameString.length() + 1];
   memset(nameChar, 0, nameString.length() + 1);
@@ -1064,6 +1064,11 @@ void strandTest()
   fill_solid(leds, NUM_LEDS, CRGB::Black);
 
   leds[i] = solidColor;
+  if(i + 16 < NUM_LEDS) {
+    CHSV color = rgb2hsv_approximate(solidColor);
+    color.hue += 128;
+    leds[i+16] = color;
+  }
 }
 
 void showSolidColor()
