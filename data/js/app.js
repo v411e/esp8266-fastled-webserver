@@ -11,17 +11,17 @@ var postValueTimer = {};
 
 var ignoreColorChange = false;
 
-var ws = new ReconnectingWebSocket('ws://' + address + ':81/', ['arduino']);
-ws.debug = true;
+// var ws = new ReconnectingWebSocket('ws://' + address + ':81/', ['arduino']);
+// ws.debug = true;
 
-ws.onmessage = function(evt) {
-  if(evt.data != null)
-  {
-    var data = JSON.parse(evt.data);
-    if(data == null) return;
-    updateFieldValue(data.name, data.value);
-  }
-}
+// ws.onmessage = function(evt) {
+//   if(evt.data != null)
+//   {
+//     var data = JSON.parse(evt.data);
+//     if(data == null) return;
+//     updateFieldValue(data.name, data.value);
+//   }
+// }
 
 $(document).ready(function() {
   $("#status").html("Connecting, please wait...");
@@ -39,6 +39,8 @@ $(document).ready(function() {
         } else if (field.type == "Color") {
           addColorFieldPalette(field);
           addColorFieldPicker(field);
+        } else if (field.type == "String") {
+          addStringField(field);
         } else if (field.type == "Section") {
           addSectionField(field);
         }
@@ -365,6 +367,36 @@ function addSectionField(field) {
 
   template.attr("id", "form-group-section-" + field.name);
   template.attr("data-field-type", field.type);
+
+  $("#form").append(template);
+}
+
+function addStringField(field, readonly) {
+  var template;
+
+  if (readonly) {
+    template = $("#labelTemplate").clone();
+  } else {
+    template = $("#stringTemplate").clone();
+  }
+
+  template.attr("id", "form-group-" + field.name);
+  template.attr("data-field-type", field.type);
+
+  var label = template.find(".control-label");
+  label.attr("for", "input-" + field.name);
+  label.text(field.label);
+
+  var input = template.find(".input");
+  input.val(field.value);
+
+  if (!readonly) {
+    input.on("change", function () {
+      var value = $(this).val();
+      field.value = value;
+      delayPostValue(field.name, value);
+    });
+  }
 
   $("#form").append(template);
 }
