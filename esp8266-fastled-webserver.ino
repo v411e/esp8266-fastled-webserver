@@ -71,8 +71,6 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
 String nameString;
 
-String nameString;
-
 const bool apMode = false;
 
 #include "Ping.h";
