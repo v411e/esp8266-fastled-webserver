@@ -33,6 +33,7 @@ extern "C" {
 //#include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
+#include <ESP8266HTTPClient.h>
 //#include <WebSocketsServer.h>
 #include <FS.h>
 #include <EEPROM.h>
@@ -71,6 +72,8 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 String nameString;
 
 const bool apMode = false;
+
+#include "Ping.h";
 
 #include "Secrets.h" // this file is intentionally not included in the sketch, so nobody accidentally commits their secret information.
 // create a Secrets.h file with the following:
@@ -507,8 +510,8 @@ void setup() {
   //first callback is called after the request has ended with all parsed arguments
   //second callback handles file uploads at that location
   webServer.on("/edit", HTTP_POST, []() {
-    webServer.send(200, "text/plain", "");
-  }, handleFileUpload);
+        webServer.send(200, "text/plain", "");
+      }, handleFileUpload);
 
   webServer.serveStatic("/", SPIFFS, "/", "max-age=86400");
 
@@ -577,6 +580,17 @@ void loop() {
       Serial.print(WiFi.localIP());
       Serial.println(" in your browser");
     }
+  }
+
+  checkPingTimer();
+
+  //  handleIrInput();
+
+  if (power == 0) {
+    fill_solid(leds, NUM_LEDS, CRGB::Black);
+    FastLED.show();
+    delay(1000 / FRAMES_PER_SECOND);
+    return;
   }
 
   // EVERY_N_SECONDS(10) {
