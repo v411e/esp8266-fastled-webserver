@@ -197,6 +197,8 @@ PatternAndNameList patterns = {
   { colorWaves,             "Color Waves" },
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
+  { wheel, "Wheel" },
+
   {fireFibonacci, "Fire Fibonacci"},
   {waterFibonacci, "Water Fibonacci"},
 
@@ -557,16 +559,7 @@ void loop() {
   //  webSocketsServer.loop();
   webServer.handleClient();
 
-  timeClient.update();
-
-  //  handleIrInput();
-
-  if (power == 0) {
-    fill_solid(leds, NUM_LEDS, CRGB::Black);
-    FastLED.show();
-    delay(1000 / FRAMES_PER_SECOND);
-    return;
-  }
+   timeClient.update();
 
   static bool hasConnected = false;
   EVERY_N_SECONDS(1) {
@@ -1410,5 +1403,13 @@ void waterFibonacci() {
     uint8_t n = inoise8((x << 2) + beat88(speed << 2), (y << 4));
 
     leds[i] = ColorFromPalette(IceColors_p, n);
+  }
+}
+
+void wheel() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    uint8_t j = beat8(speed);
+    uint8_t hue = i + j;
+    leds[i] = CHSV(hue, 255, 255);
   }
 }
