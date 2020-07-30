@@ -43,6 +43,8 @@ $(document).ready(function() {
           addStringField(field);
         } else if (field.type == "Section") {
           addSectionField(field);
+        } else if (field.type == "Label") {
+          addStringField(field, true);
         }
       });
 
