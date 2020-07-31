@@ -559,7 +559,7 @@ void loop() {
   //  webSocketsServer.loop();
   webServer.handleClient();
 
-   timeClient.update();
+  // timeClient.update();
 
   static bool hasConnected = false;
   EVERY_N_SECONDS(1) {
