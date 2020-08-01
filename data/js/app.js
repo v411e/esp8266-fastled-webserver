@@ -434,13 +434,43 @@ function postValue(name, value) {
 
   var body = { name: name, value: value };
 
-  $.post(urlBase + name + "?value=" + value, body, function (data) {
-    if (data.name != null) {
-      $("#status").html("Set " + name + ": " + data.name);
-    } else {
-      $("#status").html("Set " + name + ": " + data);
-    }
-  });
+  // TODO: hack for new fields
+  const oldFieldNames = [
+    "power",
+    "cooling",
+    "sparking",
+    "speed",
+    "twinkleSpeed",
+    "twinkleDensity",
+    "solidColor",
+    "pattern",
+    "patternName",
+    "palette",
+    "paletteName",
+    "brightness",
+    "autoplay",
+    "autoplayDuration",
+    "showClock",
+    "clockBackgroundFade"
+  ];
+
+  if (oldFieldNames.some(f => f === name)) {
+    $.post(urlBase + name + "?value=" + value, body, function (data) {
+      if (data.name != null) {
+        $("#status").html("Set " + name + ": " + data.name);
+      } else {
+        $("#status").html("Set " + name + ": " + data);
+      }
+    });
+  } else {
+    $.post(urlBase + "fieldValue?name=" + name + "&value=" + value, body, function (data) {
+      if (data.name != null) {
+        $("#status").html("Set " + name + ": " + data.name);
+      } else {
+        $("#status").html("Set " + name + ": " + data);
+      }
+    });
+  }
 }
 
 function delayPostValue(name, value) {

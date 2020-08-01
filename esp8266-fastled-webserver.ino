@@ -73,7 +73,7 @@ String nameString;
 
 const bool apMode = false;
 
-#include "Ping.h";
+#include "Ping.h"
 
 #include "Secrets.h" // this file is intentionally not included in the sketch, so nobody accidentally commits their secret information.
 // create a Secrets.h file with the following:
@@ -188,6 +188,7 @@ typedef PatternAndName PatternAndNameList[];
 //#include "Noise.h"
 #include "Pacifica.h"
 #include "PacificaFibonacci.h"
+#include "PridePlayground.h"
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
@@ -242,6 +243,8 @@ PatternAndNameList patterns = {
   { drawSpiralAnalogClock21and34, "Spiral Analog Clock 21 & 34"},
   { drawSpiralAnalogClock13_21_and_34, "Spiral Analog Clock 13, 21 & 34"},
   { drawSpiralAnalogClock34_21_and_13, "Spiral Analog Clock 34, 21 & 13"},
+
+  { pridePlayground,        "Pride Playground" },
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },
