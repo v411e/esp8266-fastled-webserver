@@ -105,23 +105,188 @@ String getTwinkleDensity() {
   return String(twinkleDensity);
 }
 
+String getName() {
+  return nameString;
+}
+
+// Pride Playground fields
+
+String getSaturationBpm() {
+  return String(saturationBpm);
+}
+String setSaturationBpm(String value)
+{
+  saturationBpm = value.toInt(); return value;
+}
+
+String getSaturationMin() {
+  return String(saturationMin);
+}
+String setSaturationMin(String value) {
+  saturationMin = value.toInt(); return value;
+}
+
+String getSaturationMax() {
+  return String(saturationMax);
+}
+String setSaturationMax(String value) {
+  saturationMax = value.toInt(); return value;
+}
+
+String getBrightDepthBpm() {
+  return String(brightDepthBpm);
+}
+String setBrightDepthBpm(String value) {
+  brightDepthBpm = value.toInt(); return value;
+}
+
+String getBrightDepthMin() {
+  return String(brightDepthMin);
+}
+String setBrightDepthMin(String value) {
+  brightDepthMin = value.toInt(); return value;
+}
+
+String getBrightDepthMax() {
+  return String(brightDepthMax);
+}
+String setBrightDepthMax(String value) {
+  brightDepthMax = value.toInt(); return value;
+}
+
+String getBrightThetaIncBpm() {
+  return String(brightThetaIncBpm);
+}
+String setBrightThetaIncBpm(String value) {
+  brightThetaIncBpm = value.toInt(); return value;
+}
+
+String getBrightThetaIncMin() {
+  return String(brightThetaIncMin);
+}
+String setBrightThetaIncMin(String value) {
+  brightThetaIncMin = value.toInt(); return value;
+}
+
+String getBrightThetaIncMax() {
+  return String(brightThetaIncMax);
+}
+String setBrightThetaIncMax(String value) {
+  brightThetaIncMax = value.toInt(); return value;
+}
+
+String getMsMulitplierBpm() {
+  return String(msMulitplierBpm);
+}
+String setMsMulitplierBpm(String value) {
+  msMulitplierBpm = value.toInt(); return value;
+}
+
+String getMsMulitplierMin() {
+  return String(msMulitplierMin);
+}
+String setMsMulitplierMin(String value) {
+  msMulitplierMin = value.toInt(); return value;
+}
+
+String getMsMulitplierMax() {
+  return String(msMulitplierMax);
+}
+String setMsMulitplierMax(String value) {
+  msMulitplierMax = value.toInt(); return value;
+}
+
+String getHueIncBpm() {
+  return String(hueIncBpm);
+}
+String setHueIncBpm(String value) {
+  hueIncBpm = value.toInt(); return value;
+}
+
+String getHueIncMin() {
+  return String(hueIncMin);
+}
+String setHueIncMin(String value) {
+  hueIncMin = value.toInt(); return value;
+}
+
+String getHueIncMax() {
+  return String(hueIncMax);
+}
+String setHueIncMax(String value) {
+  hueIncMax = value.toInt(); return value;
+}
+
+String getSHueBpm() {
+  return String(sHueBpm);
+}
+String setSHueBpm(String value) {
+  sHueBpm = value.toInt(); return value;
+}
+
+String getSHueMin() {
+  return String(sHueMin);
+}
+String setSHueMin(String value) {
+  sHueMin = value.toInt(); return value;
+}
+
+String getSHueMax() {
+  return String(sHueMax);
+}
+String setSHueMax(String value) {
+  sHueMax = value.toInt(); return value;
+}
+
 FieldList fields = {
-  { "power", "Power", BooleanFieldType, 0, 1, getPower },
-  { "brightness", "Brightness", NumberFieldType, 1, 255, getBrightness },
-  { "pattern", "Pattern", SelectFieldType, 0, patternCount, getPattern, getPatterns },
-  { "palette", "Palette", SelectFieldType, 0, paletteCount, getPalette, getPalettes },
-  { "speed", "Speed", NumberFieldType, 1, 255, getSpeed },
-  { "autoplay", "Autoplay", SectionFieldType },
-  { "autoplay", "Autoplay", BooleanFieldType, 0, 1, getAutoplay },
-  { "autoplayDuration", "Autoplay Duration", NumberFieldType, 0, 255, getAutoplayDuration },
-  { "solidColor", "Solid Color", SectionFieldType },
-  { "solidColor", "Color", ColorFieldType, 0, 255, getSolidColor },
-  { "fire", "Fire & Water", SectionFieldType },
-  { "cooling", "Cooling", NumberFieldType, 0, 255, getCooling },
-  { "sparking", "Sparking", NumberFieldType, 0, 255, getSparking },
-  { "twinkles", "Twinkles", SectionFieldType },
-  { "twinkleSpeed", "Twinkle Speed", NumberFieldType, 0, 8, getTwinkleSpeed },
-  { "twinkleDensity", "Twinkle Density", NumberFieldType, 0, 8, getTwinkleDensity },
+    {"name", "Name", LabelFieldType, 0, 0, getName},
+    {"power", "Power", BooleanFieldType, 0, 1, getPower},
+    {"brightness", "Brightness", NumberFieldType, 1, 255, getBrightness},
+    {"pattern", "Pattern", SelectFieldType, 0, patternCount, getPattern, getPatterns},
+    {"palette", "Palette", SelectFieldType, 0, paletteCount, getPalette, getPalettes},
+    {"speed", "Speed", NumberFieldType, 1, 255, getSpeed},
+    {"autoplay", "Autoplay", SectionFieldType},
+    {"autoplay", "Autoplay", BooleanFieldType, 0, 1, getAutoplay},
+    {"autoplayDuration", "Autoplay Duration", NumberFieldType, 0, 255, getAutoplayDuration},
+    {"clock", "Clock", SectionFieldType},
+    {"showClock", "Show Clock", BooleanFieldType, 0, 1, getShowClock},
+    {"clockBackgroundFade", "Background Fade", NumberFieldType, 0, 255, getClockBackgroundFade},
+    {"solidColor", "Solid Color", SectionFieldType},
+    {"solidColor", "Color", ColorFieldType, 0, 255, getSolidColor},
+
+    {"pride", "Pride", SectionFieldType},
+
+    {"saturationBpm", "Saturation BPM", NumberFieldType, 0, 255, getSaturationBpm, NULL, setSaturationBpm},
+    {"saturationMin", "Saturation Min", NumberFieldType, 0, 255, getSaturationMin, NULL, setSaturationMin},
+    {"saturationMax", "Saturation Max", NumberFieldType, 0, 255, getSaturationMax, NULL, setSaturationMax},
+
+    {"brightDepthBpm", "Brightness Depth BPM", NumberFieldType, 0, 255, getBrightDepthBpm, NULL, setBrightDepthBpm},
+    {"brightDepthMin", "Brightness Depth Min", NumberFieldType, 0, 255, getBrightDepthMin, NULL, setBrightDepthMin},
+    {"brightDepthMax", "Brightness Depth Max", NumberFieldType, 0, 255, getBrightDepthMax, NULL, setBrightDepthMax},
+
+    {"brightThetaIncBpm", "Bright Theta Inc BPM", NumberFieldType, 0, 255, getBrightThetaIncBpm, NULL, setBrightThetaIncBpm},
+    {"brightThetaIncMin", "Bright Theta Inc Min", NumberFieldType, 0, 255, getBrightThetaIncMin, NULL, setBrightThetaIncMin},
+    {"brightThetaIncMax", "Bright Theta Inc Max", NumberFieldType, 0, 255, getBrightThetaIncMax, NULL, setBrightThetaIncMax},
+
+    {"msMulitplierBpm", "Time Multiplier BPM", NumberFieldType, 0, 255, getMsMulitplierBpm, NULL, setMsMulitplierBpm},
+    {"msMulitplierMin", "Time Multiplier Min", NumberFieldType, 0, 255, getMsMulitplierMin, NULL, setMsMulitplierMin},
+    {"msMulitplierMax", "Time Multiplier Max", NumberFieldType, 0, 255, getMsMulitplierMax, NULL, setMsMulitplierMax},
+
+    {"hueIncBpm", "Hue Inc BPM", NumberFieldType, 0, 255, getHueIncBpm, NULL, setHueIncBpm},
+    {"hueIncMin", "Hue Inc Min", NumberFieldType, 0, 255, getHueIncMin, NULL, setHueIncMin},
+    {"hueIncMax", "Hue Inc Max", NumberFieldType, 0, 255, getHueIncMax, NULL, setHueIncMax},
+
+    {"sHueBpm", "S Hue BPM", NumberFieldType, 0, 255, getSHueBpm, NULL, setSHueBpm},
+    {"sHueMin", "S Hue Min", NumberFieldType, 0, 255, getSHueMin, NULL, setSHueMin},
+    {"sHueMax", "S Hue Max", NumberFieldType, 0, 255, getSHueMax, NULL, setSHueMax},
+
+
+    {"fire", "Fire & Water", SectionFieldType},
+    {"cooling", "Cooling", NumberFieldType, 0, 255, getCooling},
+    {"sparking", "Sparking", NumberFieldType, 0, 255, getSparking},
+    {"twinkles", "Twinkles", SectionFieldType},
+    {"twinkleSpeed", "Twinkle Speed", NumberFieldType, 0, 8, getTwinkleSpeed},
+    {"twinkleDensity", "Twinkle Density", NumberFieldType, 0, 8, getTwinkleDensity}
 };
 
 uint8_t fieldCount = ARRAY_SIZE(fields);
