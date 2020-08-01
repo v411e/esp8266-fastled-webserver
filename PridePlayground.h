@@ -26,7 +26,7 @@ uint8_t sHueBpm = 2;
 uint8_t sHueMin = 5;
 uint8_t sHueMax = 9;
 
-void fillWithPridePlayground(bool useFibonacciOrder)
+void pridePlayground()
 {
   static uint16_t sPseudotime = 0;
   static uint16_t sLastMillis = 0;
@@ -65,21 +65,8 @@ void fillWithPridePlayground(bool useFibonacciOrder)
 
     uint16_t pixelnumber = i;
 
-    if (useFibonacciOrder)
-      pixelnumber = fibonacciToPhysical[i];
-
     pixelnumber = (NUM_LEDS - 1) - pixelnumber;
 
     nblend(leds[pixelnumber], newcolor, 64);
   }
-}
-
-void pridePlayground()
-{
-  fillWithPridePlayground(false);
-}
-
-void prideFibonacciPlayground()
-{
-  fillWithPridePlayground(true);
 }

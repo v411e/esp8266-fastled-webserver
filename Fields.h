@@ -248,9 +248,6 @@ FieldList fields = {
     {"autoplay", "Autoplay", SectionFieldType},
     {"autoplay", "Autoplay", BooleanFieldType, 0, 1, getAutoplay},
     {"autoplayDuration", "Autoplay Duration", NumberFieldType, 0, 255, getAutoplayDuration},
-    {"clock", "Clock", SectionFieldType},
-    {"showClock", "Show Clock", BooleanFieldType, 0, 1, getShowClock},
-    {"clockBackgroundFade", "Background Fade", NumberFieldType, 0, 255, getClockBackgroundFade},
     {"solidColor", "Solid Color", SectionFieldType},
     {"solidColor", "Color", ColorFieldType, 0, 255, getSolidColor},
 
