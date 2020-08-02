@@ -314,12 +314,14 @@ void setup() {
 
   webServer.on("/all", HTTP_GET, []() {
     String json = getFieldsJson(fields, fieldCount);
-    webServer.send(200, "text/json", json);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
+    webServer.send(200, "application/json", json);
   });
 
   webServer.on("/fieldValue", HTTP_GET, []() {
     String name = webServer.arg("name");
     String value = getFieldValue(name, fields, fieldCount);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     webServer.send(200, "text/json", value);
   });
 
@@ -327,12 +329,14 @@ void setup() {
     String name = webServer.arg("name");
     String value = webServer.arg("value");
     String newValue = setFieldValue(name, value, fields, fieldCount);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     webServer.send(200, "text/json", newValue);
   });
 
   webServer.on("/power", HTTP_POST, []() {
     String value = webServer.arg("value");
     setPower(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(power);
   });
 
@@ -340,6 +344,7 @@ void setup() {
     String value = webServer.arg("value");
     cooling = value.toInt();
     broadcastInt("cooling", cooling);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(cooling);
   });
 
@@ -347,6 +352,7 @@ void setup() {
     String value = webServer.arg("value");
     sparking = value.toInt();
     broadcastInt("sparking", sparking);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(sparking);
   });
 
@@ -354,6 +360,7 @@ void setup() {
     String value = webServer.arg("value");
     speed = value.toInt();
     broadcastInt("speed", speed);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(speed);
   });
 
@@ -363,6 +370,7 @@ void setup() {
     if (twinkleSpeed < 0) twinkleSpeed = 0;
     else if (twinkleSpeed > 8) twinkleSpeed = 8;
     broadcastInt("twinkleSpeed", twinkleSpeed);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(twinkleSpeed);
   });
 
@@ -372,6 +380,7 @@ void setup() {
     if (twinkleDensity < 0) twinkleDensity = 0;
     else if (twinkleDensity > 8) twinkleDensity = 8;
     broadcastInt("twinkleDensity", twinkleDensity);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(twinkleDensity);
   });
 
@@ -381,47 +390,55 @@ void setup() {
     String b = webServer.arg("b");
     setSolidColor(r.toInt(), g.toInt(), b.toInt());
     sendString(String(solidColor.r) + "," + String(solidColor.g) + "," + String(solidColor.b));
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
   });
 
   webServer.on("/pattern", HTTP_POST, []() {
     String value = webServer.arg("value");
     setPattern(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(currentPatternIndex);
   });
 
   webServer.on("/patternName", HTTP_POST, []() {
     String value = webServer.arg("value");
     setPatternName(value);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(currentPatternIndex);
   });
 
   webServer.on("/palette", HTTP_POST, []() {
     String value = webServer.arg("value");
     setPalette(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(currentPaletteIndex);
   });
 
   webServer.on("/paletteName", HTTP_POST, []() {
     String value = webServer.arg("value");
     setPaletteName(value);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(currentPaletteIndex);
   });
 
   webServer.on("/brightness", HTTP_POST, []() {
     String value = webServer.arg("value");
     setBrightness(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(brightness);
   });
 
   webServer.on("/autoplay", HTTP_POST, []() {
     String value = webServer.arg("value");
     setAutoplay(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(autoplay);
   });
 
   webServer.on("/autoplayDuration", HTTP_POST, []() {
     String value = webServer.arg("value");
     setAutoplayDuration(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(autoplayDuration);
   });
 
@@ -438,6 +455,7 @@ void setup() {
   //first callback is called after the request has ended with all parsed arguments
   //second callback handles file uploads at that location
   webServer.on("/edit", HTTP_POST, []() {
+        webServer.sendHeader("Access-Control-Allow-Origin", "*");
         webServer.send(200, "text/plain", "");
       }, handleFileUpload);
 
