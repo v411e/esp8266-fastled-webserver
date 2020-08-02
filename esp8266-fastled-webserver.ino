@@ -199,8 +199,11 @@ PatternAndNameList patterns = {
   { colorWaves,             "Color Waves" },
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
-  { pridePlayground,         "Pride Playground" },
+   { pridePlayground,         "Pride Playground" },
   { pridePlaygroundFibonacci, "Pride Playground Fibonacci" },
+
+  { colorWavesPlayground,          "Color Waves Playground" },
+  { colorWavesPlaygroundFibonacci, "Color Waves Playground Fibonacci" },
 
   { wheel, "Wheel" },
 

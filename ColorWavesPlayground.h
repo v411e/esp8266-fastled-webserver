@@ -4,7 +4,7 @@
 
 // Modified by Jason Coon to replace "magic numbers" with customizable inputs via sliders in the web app.
 
-void colorwavesPlayground( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palette)
+void colorwavesPlayground( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palette, bool useFibonacciOrder)
 {
   static uint16_t sPseudotime = 0;
   static uint16_t sLastMillis = 0;
@@ -50,6 +50,9 @@ void colorwavesPlayground( CRGB* ledarray, uint16_t numleds, CRGBPalette16& pale
     CRGB newcolor = ColorFromPalette( palette, index, bri8);
 
     uint16_t pixelnumber = i;
+    
+    if (useFibonacciOrder) pixelnumber = fibonacciToPhysical[i];
+
     pixelnumber = (numleds - 1) - pixelnumber;
 
     nblend( ledarray[pixelnumber], newcolor, 128);
@@ -58,5 +61,10 @@ void colorwavesPlayground( CRGB* ledarray, uint16_t numleds, CRGBPalette16& pale
 
 void colorWavesPlayground()
 {
-  colorwavesPlayground(leds, NUM_LEDS, gCurrentPalette);
+  colorwavesPlayground(leds, NUM_LEDS, gCurrentPalette, false);
+}
+
+void colorWavesPlaygroundFibonacci()
+{
+  colorwavesPlayground(leds, NUM_LEDS, gCurrentPalette, true);
 }
