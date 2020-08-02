@@ -81,6 +81,7 @@ $(document).ready(function () {
       console.log({ name, oldValue, newValue });
       postValue(name, newValue);
       field.value = newValue;
+      updateFieldValue(name, newValue);
     });
   });
 
@@ -104,6 +105,7 @@ $(document).ready(function () {
     var reader = new FileReader();
     reader.onload = onFileLoaded;
     reader.readAsText(file);
+    $(this).val("");
   });
 
   function onFileLoaded(e) {
