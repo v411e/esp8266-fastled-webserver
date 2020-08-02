@@ -203,25 +203,25 @@ String setBrightThetaIncMax(String value) {
   brightThetaIncMax = value.toInt(); return value;
 }
 
-String getMsMulitplierBpm() {
-  return String(msMulitplierBpm);
+String getMsMultiplierBpm() {
+  return String(msMultiplierBpm);
 }
-String setMsMulitplierBpm(String value) {
-  msMulitplierBpm = value.toInt(); return value;
-}
-
-String getMsMulitplierMin() {
-  return String(msMulitplierMin);
-}
-String setMsMulitplierMin(String value) {
-  msMulitplierMin = value.toInt(); return value;
+String setMsMultiplierBpm(String value) {
+  msMultiplierBpm = value.toInt(); return value;
 }
 
-String getMsMulitplierMax() {
-  return String(msMulitplierMax);
+String getMsMultiplierMin() {
+  return String(msMultiplierMin);
 }
-String setMsMulitplierMax(String value) {
-  msMulitplierMax = value.toInt(); return value;
+String setMsMultiplierMin(String value) {
+  msMultiplierMin = value.toInt(); return value;
+}
+
+String getMsMultiplierMax() {
+  return String(msMultiplierMax);
+}
+String setMsMultiplierMax(String value) {
+  msMultiplierMax = value.toInt(); return value;
 }
 
 String getHueIncBpm() {
@@ -296,9 +296,9 @@ FieldList fields = {
     {"brightThetaIncMin", "Bright Theta Inc Min", NumberFieldType, 0, 255, getBrightThetaIncMin, NULL, setBrightThetaIncMin},
     {"brightThetaIncMax", "Bright Theta Inc Max", NumberFieldType, 0, 255, getBrightThetaIncMax, NULL, setBrightThetaIncMax},
 
-    {"msMulitplierBpm", "Time Multiplier BPM", NumberFieldType, 0, 255, getMsMulitplierBpm, NULL, setMsMulitplierBpm},
-    {"msMulitplierMin", "Time Multiplier Min", NumberFieldType, 0, 255, getMsMulitplierMin, NULL, setMsMulitplierMin},
-    {"msMulitplierMax", "Time Multiplier Max", NumberFieldType, 0, 255, getMsMulitplierMax, NULL, setMsMulitplierMax},
+    {"msMultiplierBpm", "Time Multiplier BPM", NumberFieldType, 0, 255, getMsMultiplierBpm, NULL, setMsMultiplierBpm},
+    {"msMultiplierMin", "Time Multiplier Min", NumberFieldType, 0, 255, getMsMultiplierMin, NULL, setMsMultiplierMin},
+    {"msMultiplierMax", "Time Multiplier Max", NumberFieldType, 0, 255, getMsMultiplierMax, NULL, setMsMultiplierMax},
 
     {"hueIncBpm", "Hue Inc BPM", NumberFieldType, 0, 255, getHueIncBpm, NULL, setHueIncBpm},
     {"hueIncMin", "Hue Inc Min", NumberFieldType, 0, 255, getHueIncMin, NULL, setHueIncMin},

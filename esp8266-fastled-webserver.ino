@@ -189,6 +189,7 @@ typedef PatternAndName PatternAndNameList[];
 #include "Pacifica.h"
 #include "PacificaFibonacci.h"
 #include "PridePlayground.h"
+#include "ColorWavesPlayground.h"
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
@@ -248,6 +249,7 @@ PatternAndNameList patterns = {
   { drawSpiralAnalogClock34_21_and_13, "Spiral Analog Clock 34, 21 & 13"},
 
   { pridePlayground,        "Pride Playground" },
+  { colorWavesPlayground,   "Color Waves Playground" },
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },

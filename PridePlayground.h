@@ -2,6 +2,8 @@
 // This function draws rainbows with an ever-changing,
 // widely-varying set of parameters.
 
+// Modified by Jason Coon to replace "magic numbers" with customizable inputs via sliders in the web app.
+
 uint8_t saturationBpm = 87;
 uint8_t saturationMin = 220;
 uint8_t saturationMax = 250;
@@ -14,9 +16,9 @@ uint8_t brightThetaIncBpm = 203;
 uint8_t brightThetaIncMin = 25;
 uint8_t brightThetaIncMax = 40;
 
-uint8_t msMulitplierBpm = 147;
-uint8_t msMulitplierMin = 23;
-uint8_t msMulitplierMax = 60;
+uint8_t msMultiplierBpm = 147;
+uint8_t msMultiplierMin = 23;
+uint8_t msMultiplierMax = 60;
 
 uint8_t hueIncBpm = 113;
 uint8_t hueIncMin = 1;
@@ -37,7 +39,7 @@ void fillWithPridePlayground(bool useFibonacciOrder)
   uint8_t brightdepth = beatsin88(brightDepthBpm * 256, brightDepthMin, brightDepthMax);
   uint16_t brightnessthetainc16 = beatsin88(brightThetaIncBpm, (brightThetaIncMin * 256), (brightThetaIncMax * 256));
   
-  uint8_t msmultiplier = beatsin88(msMulitplierBpm, msMulitplierMin, msMulitplierMax);
+  uint8_t msmultiplier = beatsin88(msMultiplierBpm, msMultiplierMin, msMultiplierMax);
 
   uint16_t hue16 = sHue16; //gHue * 256;
   uint16_t hueinc16 = beatsin88(hueIncBpm, hueIncMin, hueIncMax * 256);
