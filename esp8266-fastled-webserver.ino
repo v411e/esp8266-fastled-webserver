@@ -36,6 +36,7 @@ extern "C" {
 #include <FS.h>
 #include <EEPROM.h>
 //#include <IRremoteESP8266.h>
+#include <WiFiManager.h>
 #include "GradientPalettes.h"
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
@@ -47,6 +48,7 @@ extern "C" {
 
 //#include "Commands.h"
 
+WiFiManager wifiManager;
 ESP8266WebServer webServer(80);
 //WebSocketsServer webSocketsServer = WebSocketsServer(81);
 ESP8266HTTPUpdateServer httpUpdateServer;
@@ -62,8 +64,6 @@ ESP8266HTTPUpdateServer httpUpdateServer;
 #define FRAMES_PER_SECOND  120  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
 
 String nameString;
-
-const bool apMode = false;
 
 #include "Ping.h"
 
@@ -226,10 +226,10 @@ const String paletteNames[paletteCount] = {
 #include "Fields.h"
 
 void setup() {
+  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP    
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
 
   Serial.begin(115200);
-  delay(100);
   Serial.setDebugOutput(true);
 
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);         // for WS2812 (Neopixel)
@@ -272,9 +272,6 @@ void setup() {
     Serial.printf("\n");
   }
 
-  //disabled due to https://github.com/jasoncoon/esp8266-fastled-webserver/issues/62
-  //initializeWiFi();
-
   // Do a little work to get a unique-ish name. Get the
   // last two bytes of the MAC (HEX'd)":
   uint8_t mac[WL_MAC_ADDR_LENGTH];
@@ -293,25 +290,20 @@ void setup() {
 
   Serial.printf("Name: %s\n", nameChar );
 
-  if (apMode)
-  {
-    WiFi.mode(WIFI_AP);
+  //reset settings - wipe credentials for testing
+  // wifiManager.resetSettings();
 
-    WiFi.softAP(nameChar, WiFiAPPSK);
+  wifiManager.setConfigPortalBlocking(false);
 
-    Serial.printf("Connect to Wi-Fi access point: %s\n", nameChar);
-    Serial.println("and open http://192.168.4.1 in your browser");
+  //automatically connect using saved credentials if they exist
+  //If connection fails it starts an access point with the specified name
+  if(wifiManager.autoConnect(nameChar)){
+    Serial.println("Wi-Fi connected");
   }
-  else
-  {
-    WiFi.mode(WIFI_STA);
-    WiFi.hostname(nameString);
-    Serial.printf("Connecting to %s\n", ssid);
-    if (String(WiFi.SSID()) != String(ssid)) {
-      WiFi.begin(ssid, password);
-    }
+  else {
+    Serial.println("Wi-Fi manager portal running");
   }
-
+  
   httpUpdateServer.setup(&webServer);
 
   webServer.on("/all", HTTP_GET, []() {
@@ -501,6 +493,8 @@ void loop() {
 
   //  dnsServer.processNextRequest();
   //  webSocketsServer.loop();
+
+  wifiManager.process();
   webServer.handleClient();
 
   //  timeClient.update();
