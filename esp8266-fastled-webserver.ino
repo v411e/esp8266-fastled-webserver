@@ -28,7 +28,7 @@ extern "C" {
 }
 
 #include <ESP8266WiFi.h>
-//#include <ESP8266mDNS.h>
+#include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <ESP8266HTTPClient.h>
@@ -36,7 +36,7 @@ extern "C" {
 #include <FS.h>
 #include <EEPROM.h>
 //#include <IRremoteESP8266.h>
-#include <WiFiManager.h>
+#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager/tree/development
 #include "GradientPalettes.h"
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
@@ -280,7 +280,7 @@ void setup() {
                  String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
   macID.toUpperCase();
 
-  nameString = "ESP8266 " + macID;
+  nameString = "ESP8266-" + macID;
 
   char nameChar[nameString.length() + 1];
   memset(nameChar, 0, nameString.length() + 1);
@@ -290,7 +290,7 @@ void setup() {
 
   Serial.printf("Name: %s\n", nameChar );
 
-  //reset settings - wipe credentials for testing
+  // reset settings - wipe credentials for testing
   // wifiManager.resetSettings();
 
   wifiManager.setConfigPortalBlocking(false);
@@ -455,6 +455,9 @@ void setup() {
 
   webServer.serveStatic("/", SPIFFS, "/", "max-age=86400");
 
+  MDNS.begin(nameChar);
+  MDNS.setHostname(nameChar);
+
   webServer.begin();
   Serial.println("HTTP web server started");
 
@@ -491,11 +494,11 @@ void loop() {
   // Add entropy to random number generator; we use a lot of it.
   random16_add_entropy(random(65535));
 
-  //  dnsServer.processNextRequest();
   //  webSocketsServer.loop();
 
   wifiManager.process();
   webServer.handleClient();
+  MDNS.update();
 
   //  timeClient.update();
 
@@ -507,9 +510,15 @@ void loop() {
     }
     else if (!hasConnected) {
       hasConnected = true;
+      MDNS.begin(nameString);
+      MDNS.setHostname(nameString);
+      webServer.begin();
+      Serial.println("HTTP web server started");
       Serial.print("Connected! Open http://");
       Serial.print(WiFi.localIP());
-      Serial.println(" in your browser");
+      Serial.print(" or http://");
+      Serial.print(nameString);
+      Serial.println(".local in your browser");
     }
   }
 
