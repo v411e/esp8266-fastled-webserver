@@ -586,6 +586,11 @@ function postColor(name, value) {
     $("#status").html("Set " + name + ": " + data);
   })
   .fail(function(textStatus, errorThrown) { $("#status").html("Fail: " + textStatus + " " + errorThrown); });
+
+  if (name === 'solidColor') {
+    const option = $("#input-pattern option:contains('Solid Color')")[0];
+    $("#input-pattern").val(option.index);
+  }
 }
 
 function delayPostColor(name, value) {
