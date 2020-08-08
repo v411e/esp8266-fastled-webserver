@@ -30,7 +30,7 @@ extern "C" {
 #include <NTPClient.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
-//#include <ESP8266mDNS.h>
+#include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <ESP8266HTTPClient.h>
@@ -38,6 +38,7 @@ extern "C" {
 #include <FS.h>
 #include <EEPROM.h>
 //#include <IRremoteESP8266.h>
+#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager/tree/development
 #include "GradientPalettes.h"
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
@@ -49,6 +50,7 @@ extern "C" {
 
 //#include "Commands.h"
 
+WiFiManager wifiManager;
 ESP8266WebServer webServer(80);
 //WebSocketsServer webSocketsServer = WebSocketsServer(81);
 ESP8266HTTPUpdateServer httpUpdateServer;
@@ -71,9 +73,7 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
 String nameString;
 
-const bool apMode = false;
-
-#include "Ping.h";
+#include "Ping.h"
 
 #include "Secrets.h" // this file is intentionally not included in the sketch, so nobody accidentally commits their secret information.
 // create a Secrets.h file with the following:
@@ -188,6 +188,8 @@ typedef PatternAndName PatternAndNameList[];
 //#include "Noise.h"
 #include "Pacifica.h"
 #include "PacificaFibonacci.h"
+#include "PridePlayground.h"
+#include "ColorWavesPlayground.h"
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
@@ -197,8 +199,14 @@ PatternAndNameList patterns = {
   { colorWaves,             "Color Waves" },
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
-  {fireFibonacci, "Fire Fibonacci"},
-  {waterFibonacci, "Water Fibonacci"},
+  { pridePlayground,          "Pride Playground" },
+  { pridePlaygroundFibonacci, "Pride Playground Fibonacci" },
+
+  { colorWavesPlayground,          "Color Waves Playground" },
+  { colorWavesPlaygroundFibonacci, "Color Waves Playground Fibonacci" },
+
+  { fireFibonacci, "Fire Fibonacci" },
+  { waterFibonacci, "Water Fibonacci" },
 
   { pacifica_loop,           "Pacifica" },
   { pacifica_fibonacci_loop, "Pacifica Fibonacci" },
@@ -283,10 +291,10 @@ const uint8_t patternCount = ARRAY_SIZE(patterns);
 #include "Fields.h"
 
 void setup() {
+  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP    
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
 
   Serial.begin(115200);
-  delay(100);
   Serial.setDebugOutput(true);
 
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS); // for WS2812 (Neopixel)
@@ -329,9 +337,6 @@ void setup() {
     Serial.printf("\n");
   }
 
-  //disabled due to https://github.com/jasoncoon/esp8266-fastled-webserver/issues/62
-  //initializeWiFi();
-
   // Do a little work to get a unique-ish name. Get the
   // last two bytes of the MAC (HEX'd)":
   uint8_t mac[WL_MAC_ADDR_LENGTH];
@@ -350,36 +355,32 @@ void setup() {
 
   Serial.printf("Name: %s\n", nameChar );
 
-  if (apMode)
-  {
-    WiFi.mode(WIFI_AP);
+  // reset settings - wipe credentials for testing
+  // wifiManager.resetSettings();
 
-    WiFi.softAP(nameChar, WiFiAPPSK);
+  wifiManager.setConfigPortalBlocking(false);
 
-    Serial.printf("Connect to Wi-Fi access point: %s\n", nameChar);
-    Serial.println("and open http://192.168.4.1 in your browser");
+  //automatically connect using saved credentials if they exist
+  //If connection fails it starts an access point with the specified name
+  if(wifiManager.autoConnect(nameChar)){
+    Serial.println("Wi-Fi connected");
   }
-  else
-  {
-    WiFi.mode(WIFI_STA);
-    WiFi.hostname(nameString);
-    Serial.printf("Connecting to %s\n", ssid);
-    if (String(WiFi.SSID()) != String(ssid)) {
-      WiFi.begin(ssid, password);
-    }
+  else {
+    Serial.println("Wi-Fi manager portal running");
   }
-
+  
   httpUpdateServer.setup(&webServer);
 
   webServer.on("/all", HTTP_GET, []() {
     String json = getFieldsJson(fields, fieldCount);
-    webServer.sendHeader("Content-Type", "application/json");
-    webServer.send(200, "text/json", json);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
+    webServer.send(200, "application/json", json);
   });
 
   webServer.on("/fieldValue", HTTP_GET, []() {
     String name = webServer.arg("name");
     String value = getFieldValue(name, fields, fieldCount);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     webServer.send(200, "text/json", value);
   });
 
@@ -387,12 +388,14 @@ void setup() {
     String name = webServer.arg("name");
     String value = webServer.arg("value");
     String newValue = setFieldValue(name, value, fields, fieldCount);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     webServer.send(200, "text/json", newValue);
   });
 
   webServer.on("/power", HTTP_POST, []() {
     String value = webServer.arg("value");
     setPower(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(power);
   });
 
@@ -400,6 +403,7 @@ void setup() {
     String value = webServer.arg("value");
     cooling = value.toInt();
     broadcastInt("cooling", cooling);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(cooling);
   });
 
@@ -407,6 +411,7 @@ void setup() {
     String value = webServer.arg("value");
     sparking = value.toInt();
     broadcastInt("sparking", sparking);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(sparking);
   });
 
@@ -414,6 +419,7 @@ void setup() {
     String value = webServer.arg("value");
     speed = value.toInt();
     broadcastInt("speed", speed);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(speed);
   });
 
@@ -423,6 +429,7 @@ void setup() {
     if (twinkleSpeed < 0) twinkleSpeed = 0;
     else if (twinkleSpeed > 8) twinkleSpeed = 8;
     broadcastInt("twinkleSpeed", twinkleSpeed);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(twinkleSpeed);
   });
 
@@ -432,6 +439,7 @@ void setup() {
     if (twinkleDensity < 0) twinkleDensity = 0;
     else if (twinkleDensity > 8) twinkleDensity = 8;
     broadcastInt("twinkleDensity", twinkleDensity);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(twinkleDensity);
   });
 
@@ -441,47 +449,55 @@ void setup() {
     String b = webServer.arg("b");
     setSolidColor(r.toInt(), g.toInt(), b.toInt());
     sendString(String(solidColor.r) + "," + String(solidColor.g) + "," + String(solidColor.b));
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
   });
 
   webServer.on("/pattern", HTTP_POST, []() {
     String value = webServer.arg("value");
     setPattern(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(currentPatternIndex);
   });
 
   webServer.on("/patternName", HTTP_POST, []() {
     String value = webServer.arg("value");
     setPatternName(value);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(currentPatternIndex);
   });
 
   webServer.on("/palette", HTTP_POST, []() {
     String value = webServer.arg("value");
     setPalette(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(currentPaletteIndex);
   });
 
   webServer.on("/paletteName", HTTP_POST, []() {
     String value = webServer.arg("value");
     setPaletteName(value);
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(currentPaletteIndex);
   });
 
   webServer.on("/brightness", HTTP_POST, []() {
     String value = webServer.arg("value");
     setBrightness(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(brightness);
   });
 
   webServer.on("/autoplay", HTTP_POST, []() {
     String value = webServer.arg("value");
     setAutoplay(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(autoplay);
   });
 
   webServer.on("/autoplayDuration", HTTP_POST, []() {
     String value = webServer.arg("value");
     setAutoplayDuration(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(autoplayDuration);
   });
 
@@ -510,10 +526,14 @@ void setup() {
   //first callback is called after the request has ended with all parsed arguments
   //second callback handles file uploads at that location
   webServer.on("/edit", HTTP_POST, []() {
+        webServer.sendHeader("Access-Control-Allow-Origin", "*");
         webServer.send(200, "text/plain", "");
       }, handleFileUpload);
 
   webServer.serveStatic("/", SPIFFS, "/", "max-age=86400");
+
+  MDNS.begin(nameChar);
+  MDNS.setHostname(nameChar);
 
   webServer.begin();
   Serial.println("HTTP web server started");
@@ -553,9 +573,11 @@ void loop() {
   // Add entropy to random number generator; we use a lot of it.
   random16_add_entropy(random(65535));
 
-  //  dnsServer.processNextRequest();
   //  webSocketsServer.loop();
+
+  wifiManager.process();
   webServer.handleClient();
+  MDNS.update();
 
   //  timeClient.update();
 
@@ -567,9 +589,15 @@ void loop() {
     }
     else if (!hasConnected) {
       hasConnected = true;
+      MDNS.begin(nameString);
+      MDNS.setHostname(nameString);
+      webServer.begin();
+      Serial.println("HTTP web server started");
       Serial.print("Connected! Open http://");
       Serial.print(WiFi.localIP());
-      Serial.println(" in your browser");
+      Serial.print(" or http://");
+      Serial.print(nameString);
+      Serial.println(".local in your browser");
     }
   }
 

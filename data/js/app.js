@@ -3,7 +3,7 @@ var address = location.hostname;
 var urlBase = "";
 
 // used when hosting the site somewhere other than the ESP8266 (handy for testing without waiting forever to upload to SPIFFS)
-// var address = "esp8266-1920f7.local";
+// var address = "192.168.86.36";
 // var urlBase = "http://" + address + "/";
 
 var postColorTimer = {};
@@ -14,21 +14,112 @@ var ignoreColorChange = false;
 // var ws = new ReconnectingWebSocket("ws://" + address + ":81/", ["arduino"]);
 // ws.debug = true;
 
-// ws.onmessage = function (evt) {
-//   if (evt.data != null) {
+// ws.onmessage = function(evt) {
+//   if (evt.data != null)
+//   {
 //     var data = JSON.parse(evt.data);
-//     if (data == null) return;
+//     if(data == null) return;
 //     updateFieldValue(data.name, data.value);
 //   }
-// };
+// }
 
-$(document).ready(function () {
+var allData = {};
+
+$(document).ready(function() {
   $("#status").html("Connecting, please wait...");
 
-  $.get(urlBase + "all", function (data) {
+  $("#btnTop").click(function () {
+    $([document.documentElement, document.body]).animate(
+      {
+        scrollTop: $("#top").offset().top,
+      },
+      1000
+    );
+  });
+
+  $("#btnScrollToBottom").click(function () {
+    $([document.documentElement, document.body]).animate(
+      {
+        scrollTop: $("#accordionImportExport").offset().top,
+      },
+      1000
+    );
+  });
+
+  $("#btnCopy").click(function () {
+    $("#textareaFields").select();
+    document.execCommand("copy");
+  });
+
+  $("#btnExport").click(function () {
+    const fields = allData.reduce((previous, current) => {
+      if (
+        current.name === "name" ||
+        current.value === null ||
+        current.value === undefined
+      )
+        return previous;
+      return {
+        ...previous,
+        [current.name]: current.value,
+      };
+    }, {});
+    $("#textareaFields").val(JSON.stringify(fields, null, 2));
+  });
+
+  $("#btnImport").click(function () {
+    const text = $("#textareaFields").val();
+    const fields = JSON.parse(text);
+    Object.keys(fields).forEach((name) => {
+      const newValue = fields[name];
+      if (newValue === null || newValue === undefined) return;
+
+      const field = allData.find((f) => f.name === name);
+      if (!field || field.value === newValue) return;
+      const oldValue = field.value;
+
+      console.log({ name, oldValue, newValue });
+      postValue(name, newValue);
+      field.value = newValue;
+      updateFieldValue(name, newValue);
+    });
+  });
+
+  $("#btnSave").click( function() {
+    var text = $("#textareaFields").val();
+    var filename = $("#inputFilename").val() || "preset1.json";
+    var blob = new Blob([text], {type: "application/json;charset=utf-8"});
+    saveAs(blob, filename);
+  });
+
+  $("#btnOpen").click( function() {
+    $('#inputFile').click();
+  });
+
+  $('#inputFile').change(function(e) {
+    var files = e.target.files;
+    if (files.length < 1) {
+        return;
+    }
+    var file = files[0];
+    var reader = new FileReader();
+    reader.onload = onFileLoaded;
+    reader.readAsText(file);
+    $(this).val("");
+  });
+
+  function onFileLoaded (e) {
+    const result = e.target.result;
+    const json = JSON.parse(result);
+    $("#textareaFields").val(JSON.stringify(json, null, 2));
+  }
+
+  $.get(urlBase + "all", function(data) {
     $("#status").html("Loading, please wait...");
 
-    $.each(data, function (index, field) {
+    allData = data;
+
+    $.each(data, function(index, field) {
       if (field.type == "Number") {
         addNumberField(field);
       } else if (field.type == "Boolean") {
@@ -52,13 +143,16 @@ $(document).ready(function () {
       changeDelay: 200,
       control: "wheel",
       format: "rgb",
-      inline: true,
+      inline: true
     });
 
     $("#status").html("Ready");
-  }).fail(function (errorThrown) {
-    console.log({ errorThrown });
+  })
+  .fail(function(errorThrown) {
+    console.log(errorThrown);
   });
+
+  $("#status").html("Ready");
 });
 
 function addNumberField(field) {
@@ -434,13 +528,43 @@ function postValue(name, value) {
 
   var body = { name: name, value: value };
 
-  $.post(urlBase + name + "?value=" + value, body, function (data) {
-    if (data.name != null) {
-      $("#status").html("Set " + name + ": " + data.name);
-    } else {
-      $("#status").html("Set " + name + ": " + data);
-    }
-  });
+  // TODO: hack for new fields
+  const oldFieldNames = [
+    "power",
+    "cooling",
+    "sparking",
+    "speed",
+    "twinkleSpeed",
+    "twinkleDensity",
+    "solidColor",
+    "pattern",
+    "patternName",
+    "palette",
+    "paletteName",
+    "brightness",
+    "autoplay",
+    "autoplayDuration",
+    "showClock",
+    "clockBackgroundFade"
+  ];
+
+  if (oldFieldNames.some(f => f === name)) {
+    $.post(urlBase + name + "?value=" + value, body, function (data) {
+      if (data.name != null) {
+        $("#status").html("Set " + name + ": " + data.name);
+      } else {
+        $("#status").html("Set " + name + ": " + data);
+      }
+    });
+  } else {
+    $.post(urlBase + "fieldValue?name=" + name + "&value=" + value, body, function (data) {
+        if (data.name != null) {
+          $("#status").html("Set " + name + ": " + data.name);
+        } else {
+          $("#status").html("Set " + name + ": " + data);
+        }
+    });
+  }
 }
 
 function delayPostValue(name, value) {
@@ -465,15 +589,15 @@ function postColor(name, value) {
 
   var body = { name: name, r: value.r, g: value.g, b: value.b };
 
-  $.post(
-    urlBase + name + "?r=" + value.r + "&g=" + value.g + "&b=" + value.b,
-    body,
-    function (data) {
-      $("#status").html("Set " + name + ": " + data);
-    }
-  ).fail(function (textStatus, errorThrown) {
-    $("#status").html("Fail: " + textStatus + " " + errorThrown);
-  });
+  $.post(urlBase + name + "?r=" + value.r + "&g=" + value.g + "&b=" + value.b, body, function(data) {
+    $("#status").html("Set " + name + ": " + data);
+  })
+  .fail(function(textStatus, errorThrown) { $("#status").html("Fail: " + textStatus + " " + errorThrown); });
+
+  if (name === 'solidColor') {
+    const option = $("#input-pattern option:contains('Solid Color')")[0];
+    $("#input-pattern").val(option.index);
+  }
 }
 
 function delayPostColor(name, value) {
