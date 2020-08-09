@@ -30,7 +30,7 @@ extern "C" {
 #include <NTPClient.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
-//#include <ESP8266mDNS.h>
+#include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <ESP8266HTTPClient.h>
@@ -38,6 +38,7 @@ extern "C" {
 #include <FS.h>
 #include <EEPROM.h>
 //#include <IRremoteESP8266.h>
+#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager/tree/development
 #include "GradientPalettes.h"
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
@@ -49,6 +50,7 @@ extern "C" {
 
 //#include "Commands.h"
 
+WiFiManager wifiManager;
 ESP8266WebServer webServer(80);
 //WebSocketsServer webSocketsServer = WebSocketsServer(81);
 ESP8266HTTPUpdateServer httpUpdateServer;
@@ -70,8 +72,6 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 #define FRAMES_PER_SECOND 120 // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
 
 String nameString;
-
-const bool apMode = false;
 
 #include "Ping.h"
 
@@ -296,10 +296,10 @@ const uint8_t patternCount = ARRAY_SIZE(patterns);
 #include "Fields.h"
 
 void setup() {
+  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP    
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
 
   Serial.begin(115200);
-  delay(100);
   Serial.setDebugOutput(true);
 
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS); // for WS2812 (Neopixel)
@@ -342,9 +342,6 @@ void setup() {
     Serial.printf("\n");
   }
 
-  //disabled due to https://github.com/jasoncoon/esp8266-fastled-webserver/issues/62
-  //initializeWiFi();
-
   // Do a little work to get a unique-ish name. Get the
   // last two bytes of the MAC (HEX'd)":
   uint8_t mac[WL_MAC_ADDR_LENGTH];
@@ -353,7 +350,7 @@ void setup() {
                  String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
   macID.toUpperCase();
 
-  nameString = "Fibonacci256 " + macID;
+  nameString = "Fibonacci256-" + macID;
 
   char nameChar[nameString.length() + 1];
   memset(nameChar, 0, nameString.length() + 1);
@@ -363,25 +360,20 @@ void setup() {
 
   Serial.printf("Name: %s\n", nameChar );
 
-  if (apMode)
-  {
-    WiFi.mode(WIFI_AP);
+  // reset settings - wipe credentials for testing
+  // wifiManager.resetSettings();
 
-    WiFi.softAP(nameChar, WiFiAPPSK);
+  wifiManager.setConfigPortalBlocking(false);
 
-    Serial.printf("Connect to Wi-Fi access point: %s\n", nameChar);
-    Serial.println("and open http://192.168.4.1 in your browser");
+  //automatically connect using saved credentials if they exist
+  //If connection fails it starts an access point with the specified name
+  if(wifiManager.autoConnect(nameChar)){
+    Serial.println("Wi-Fi connected");
   }
-  else
-  {
-    WiFi.mode(WIFI_STA);
-    WiFi.hostname(nameString);
-    Serial.printf("Connecting to %s\n", ssid);
-    if (String(WiFi.SSID()) != String(ssid)) {
-      WiFi.begin(ssid, password);
-    }
+  else {
+    Serial.println("Wi-Fi manager portal running");
   }
-
+  
   httpUpdateServer.setup(&webServer);
 
   webServer.on("/all", HTTP_GET, []() {
@@ -545,6 +537,9 @@ void setup() {
 
   webServer.serveStatic("/", SPIFFS, "/", "max-age=86400");
 
+  MDNS.begin(nameChar);
+  MDNS.setHostname(nameChar);
+
   webServer.begin();
   Serial.println("HTTP web server started");
 
@@ -583,9 +578,11 @@ void loop() {
   // Add entropy to random number generator; we use a lot of it.
   random16_add_entropy(random(65535));
 
-  //  dnsServer.processNextRequest();
   //  webSocketsServer.loop();
+
+  wifiManager.process();
   webServer.handleClient();
+  MDNS.update();
 
   // timeClient.update();
 
@@ -597,9 +594,15 @@ void loop() {
     }
     else if (!hasConnected) {
       hasConnected = true;
+      MDNS.begin(nameString);
+      MDNS.setHostname(nameString);
+      webServer.begin();
+      Serial.println("HTTP web server started");
       Serial.print("Connected! Open http://");
       Serial.print(WiFi.localIP());
-      Serial.println(" in your browser");
+      Serial.print(" or http://");
+      Serial.print(nameString);
+      Serial.println(".local in your browser");
     }
   }
 

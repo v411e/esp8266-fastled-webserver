@@ -590,15 +590,15 @@ function postColor(name, value) {
 
   var body = { name: name, r: value.r, g: value.g, b: value.b };
 
-  $.post(
-    urlBase + name + "?r=" + value.r + "&g=" + value.g + "&b=" + value.b,
-    body,
-    function (data) {
-      $("#status").html("Set " + name + ": " + data);
-    }
-  ).fail(function (textStatus, errorThrown) {
-    $("#status").html("Fail: " + textStatus + " " + errorThrown);
-  });
+  $.post(urlBase + name + "?r=" + value.r + "&g=" + value.g + "&b=" + value.b, body, function(data) {
+    $("#status").html("Set " + name + ": " + data);
+  })
+  .fail(function(textStatus, errorThrown) { $("#status").html("Fail: " + textStatus + " " + errorThrown); });
+
+  if (name === 'solidColor') {
+    const option = $("#input-pattern option:contains('Solid Color')")[0];
+    $("#input-pattern").val(option.index);
+  }
 }
 
 function delayPostColor(name, value) {
