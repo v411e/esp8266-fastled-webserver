@@ -67,17 +67,6 @@ String nameString;
 
 #include "Ping.h"
 
-#include "Secrets.h" // this file is intentionally not included in the sketch, so nobody accidentally commits their secret information.
-// create a Secrets.h file with the following:
-
-// AP mode password
-// const char WiFiAPPSK[] = "your-password";
-
-// Wi-Fi network to connect to (if not in AP mode)
-// char* ssid = "your-ssid";
-// char* password = "your-password";
-
-
 CRGB leds[NUM_LEDS];
 
 const uint8_t brightnessCount = 5;
