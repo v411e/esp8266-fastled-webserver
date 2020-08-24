@@ -213,7 +213,9 @@ void drawAnalogClock() {
   const uint8_t minuteRadius = 192;
   const uint8_t secondRadius = 255;
 
-  const uint8_t handWidth = 32;
+  const uint8_t hourHandWidth = 8;
+  const uint8_t minuteHandWidth = 7;
+  const uint8_t secondHandWidth = 6;
 
   const float degreesPerSecond = 255.0 / 60.0;
   const float degreesPerMinute = 255.0 / 60.0;
@@ -227,9 +229,9 @@ void drawAnalogClock() {
 
   fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
 
-  antialiasPixelAR(secondAngle, handWidth, 0, secondRadius, CRGB::Blue);
-  antialiasPixelAR(minuteAngle, handWidth, 0, minuteRadius, CRGB::Green);
-  antialiasPixelAR(hourAngle, handWidth, 0, hourRadius, CRGB::Red);
+  antialiasPixelAR(secondAngle, secondHandWidth, 0, secondRadius, CRGB::Blue);
+  antialiasPixelAR(minuteAngle, minuteHandWidth, 0, minuteRadius, CRGB::Green);
+  antialiasPixelAR(hourAngle, hourHandWidth, 0, hourRadius, CRGB::Red);
   leds[0] = CRGB::Red;
 }
 
