@@ -205,10 +205,6 @@ void drawAnalogClock() {
   float minute = timeClient.getMinutes() + (second / 60.0);
   float hour = timeClient.getHours() + (minute / 60.0);
 
-  static uint8_t hourAngle = 0;
-  static uint8_t minuteAngle = 0;
-  static uint8_t secondAngle = 0;
-
   const uint8_t hourRadius = 96;
   const uint8_t minuteRadius = 192;
   const uint8_t secondRadius = 255;
@@ -220,6 +216,10 @@ void drawAnalogClock() {
   const float degreesPerSecond = 255.0 / 60.0;
   const float degreesPerMinute = 255.0 / 60.0;
   const float degreesPerHour = 255.0 / 12.0;
+
+  static uint8_t hourAngle = 255 - hour * degreesPerHour;
+  static uint8_t minuteAngle = 255 - minute * degreesPerMinute;
+  static uint8_t secondAngle = 255 - second * degreesPerSecond;
 
   EVERY_N_MILLIS(100) {
     hourAngle = 255 - hour * degreesPerHour;
