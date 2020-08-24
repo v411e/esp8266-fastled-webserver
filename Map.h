@@ -78,20 +78,17 @@ void andPixelAR(uint8_t angle, uint8_t dAngle, uint8_t startRadius, uint8_t endR
 
 void antialiasPixelAR(uint8_t angle, uint8_t dAngle, uint8_t startRadius, uint8_t endRadius, CRGB color)
 {
-  uint16_t amax = qadd8(angle, dAngle);
-  uint8_t amin = qsub8(angle, dAngle);
-
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
     uint8_t o = i;
 
     uint8_t ao = angles[o];
 
-    uint8_t adiff = qsub8(max(ao, angle), min(ao, angle));
-    uint8_t fade = qmul8(adiff, 32);
+    uint8_t adiff = min(sub8(ao,angle), sub8(angle, ao));
+    uint8_t fade = map(adiff, 0, dAngle, 0, 255);
     CRGB faded = color;
     faded.fadeToBlackBy(fade);
 
-    if (ao <= amax && ao >= amin) {
+    if (adiff <= dAngle) {
       uint8_t ro = physicalToFibonacci[o];
 
       if (ro <= endRadius && ro >= startRadius) {
