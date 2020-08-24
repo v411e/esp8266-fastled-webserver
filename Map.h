@@ -78,20 +78,17 @@ void andPixelAR(uint8_t angle, uint8_t dAngle, uint8_t startRadius, uint8_t endR
 
 void antialiasPixelAR(uint8_t angle, uint8_t dAngle, uint8_t startRadius, uint8_t endRadius, CRGB color)
 {
-  uint16_t amax = qadd8(angle, dAngle);
-  uint8_t amin = qsub8(angle, dAngle);
-
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
     uint8_t o = i;
 
     uint8_t ao = angles[o];
 
-    uint8_t adiff = qsub8(max(ao, angle), min(ao, angle));
-    uint8_t fade = qmul8(adiff, 32);
+    uint8_t adiff = min(sub8(ao,angle), sub8(angle, ao));
+    uint8_t fade = map(adiff, 0, dAngle, 0, 255);
     CRGB faded = color;
     faded.fadeToBlackBy(fade);
 
-    if (ao <= amax && ao >= amin) {
+    if (adiff <= dAngle) {
       uint8_t ro = physicalToFibonacci[o];
 
       if (ro <= endRadius && ro >= startRadius) {
@@ -208,19 +205,21 @@ void drawAnalogClock() {
   float minute = timeClient.getMinutes() + (second / 60.0);
   float hour = timeClient.getHours() + (minute / 60.0);
 
-  static uint8_t hourAngle = 0;
-  static uint8_t minuteAngle = 0;
-  static uint8_t secondAngle = 0;
-
   const uint8_t hourRadius = 96;
   const uint8_t minuteRadius = 192;
   const uint8_t secondRadius = 255;
 
-  const uint8_t handWidth = 32;
+  const uint8_t hourHandWidth = 8;
+  const uint8_t minuteHandWidth = 7;
+  const uint8_t secondHandWidth = 6;
 
   const float degreesPerSecond = 255.0 / 60.0;
   const float degreesPerMinute = 255.0 / 60.0;
   const float degreesPerHour = 255.0 / 12.0;
+
+  static uint8_t hourAngle = 255 - hour * degreesPerHour;
+  static uint8_t minuteAngle = 255 - minute * degreesPerMinute;
+  static uint8_t secondAngle = 255 - second * degreesPerSecond;
 
   EVERY_N_MILLIS(100) {
     hourAngle = 255 - hour * degreesPerHour;
@@ -230,9 +229,9 @@ void drawAnalogClock() {
 
   fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);
 
-  antialiasPixelAR(secondAngle, handWidth, 0, secondRadius, CRGB::Blue);
-  antialiasPixelAR(minuteAngle, handWidth, 0, minuteRadius, CRGB::Green);
-  antialiasPixelAR(hourAngle, handWidth, 0, hourRadius, CRGB::Red);
+  antialiasPixelAR(secondAngle, secondHandWidth, 0, secondRadius, CRGB::Blue);
+  antialiasPixelAR(minuteAngle, minuteHandWidth, 0, minuteRadius, CRGB::Green);
+  antialiasPixelAR(hourAngle, hourHandWidth, 0, hourRadius, CRGB::Red);
   leds[0] = CRGB::Red;
 }
 
