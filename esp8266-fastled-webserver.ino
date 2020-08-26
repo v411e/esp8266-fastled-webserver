@@ -1473,7 +1473,7 @@ void emitterFibonacci() {
   static uint8_t sparkIdx = 0; // randomizer cycles through traces to spark new ones
 
   // spark new trace
-  EVERY_N_MILLIS(100) {
+  EVERY_N_MILLIS(20) {
     if (random8(17) <= (speed >> 4)) { // increase change rate for higher speeds
       angle[sparkIdx] = random8();
       speedOffset[sparkIdx] = random8(vSpeed); // individual speed variation
@@ -1488,7 +1488,7 @@ void emitterFibonacci() {
   // draw traces
   for (uint8_t e = 0; e < eCount; e++) {
     uint8_t startRadius = sub8(beat8(qadd8(speed, speedOffset[e])), timeOffset[e]);
-    uint8_t endRadius = add8(startRadius, dRadius - (speed>>5)); // decrease radial with for higher speeds
+    uint8_t endRadius = add8(startRadius, dRadius + (speed>>5)); // increase radial width for higher speeds
     antialiasPixelAR(angle[e], dAngle, startRadius, endRadius, ColorFromPalette(gCurrentPalette, startRadius));
   }
 }
