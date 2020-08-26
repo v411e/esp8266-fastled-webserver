@@ -1458,6 +1458,9 @@ void waterFibonacci() {
   }
 }
 
+/**
+ * Emits arcs of color pertruding from the center to the edge of the disc.
+ */
 void emitterFibonacci() {
   const uint8_t dAngle = 32; // angular span of the traces
   const uint8_t dRadius = 12; // radial width of the traces
@@ -1485,7 +1488,7 @@ void emitterFibonacci() {
   // draw traces
   for (uint8_t e = 0; e < eCount; e++) {
     uint8_t startRadius = sub8(beat8(qadd8(speed, speedOffset[e])), timeOffset[e]);
-    uint8_t endRadius = qadd8(startRadius, dRadius - (speed>>5)); // decrease radial with for higher speeds
+    uint8_t endRadius = add8(startRadius, dRadius - (speed>>5)); // decrease radial with for higher speeds
     antialiasPixelAR(angle[e], dAngle, startRadius, endRadius, ColorFromPalette(gCurrentPalette, startRadius));
   }
 }
