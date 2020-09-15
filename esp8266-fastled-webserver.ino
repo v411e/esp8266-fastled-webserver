@@ -67,6 +67,7 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 #define NUM_LEDS 256
+#define NUM_LEDS_3 NUM_LEDS * 3
 
 #define MILLI_AMPS 2000       // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
 #define FRAMES_PER_SECOND 120 // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
@@ -1459,9 +1460,10 @@ void waterFibonacci() {
 }
 
 /**
- * Emits arcs of color pertruding from the center to the edge of the disc.
+ * Emits arcs of color spreading out from the center to the edge of the disc.
  */
 void emitterFibonacci() {
+  static CRGB ledBuffer[NUM_LEDS]; // buffer for better fade behavior
   const uint8_t dAngle = 32; // angular span of the traces
   const uint8_t dRadius = 12; // radial width of the traces
   const uint8_t vSpeed = 16; // max speed variation
@@ -1483,14 +1485,17 @@ void emitterFibonacci() {
   }
 
   // fade traces
-  fadeToBlackBy( leds, NUM_LEDS, 10);
+  fadeToBlackBy( ledBuffer, NUM_LEDS, 6 + (speed >> 3));
 
   // draw traces
   for (uint8_t e = 0; e < eCount; e++) {
     uint8_t startRadius = sub8(beat8(qadd8(speed, speedOffset[e])), timeOffset[e]);
     uint8_t endRadius = add8(startRadius, dRadius + (speed>>5)); // increase radial width for higher speeds
-    antialiasPixelAR(angle[e], dAngle, startRadius, endRadius, ColorFromPalette(gCurrentPalette, startRadius));
+    antialiasPixelAR(angle[e], dAngle, startRadius, endRadius, ColorFromPalette(gCurrentPalette, startRadius), ledBuffer);
   }
+
+  // copy buffer to actual strip
+  memcpy(leds, ledBuffer, NUM_LEDS_3);
 }
 
 void wheel() {
