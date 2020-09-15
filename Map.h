@@ -76,9 +76,9 @@ void andPixelAR(uint8_t angle, uint8_t dAngle, uint8_t startRadius, uint8_t endR
   }
 }
 
-void antialiasPixelAR(uint8_t angle, uint8_t dAngle, uint8_t startRadius, uint8_t endRadius, CRGB color)
+void antialiasPixelAR(uint8_t angle, uint8_t dAngle, uint8_t startRadius, uint8_t endRadius, CRGB color, CRGB leds[] = leds, int _NUM_LEDS = NUM_LEDS)
 {
-  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+  for (uint16_t i = 0; i < _NUM_LEDS; i++) {
     uint8_t o = i;
 
     uint8_t ao = angles[o];
