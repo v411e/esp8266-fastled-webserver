@@ -187,6 +187,12 @@ PatternAndNameList patterns = {
   { colorWaves,             "Color Waves" },
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
+  { pridePlayground,         "Pride Playground" },
+  { pridePlaygroundFibonacci, "Pride Playground Fibonacci" },
+
+  { colorWavesPlayground,          "Color Waves Playground" },
+  { colorWavesPlaygroundFibonacci, "Color Waves Playground Fibonacci" },
+
   // matrix patterns
   { anglePalette,  "Angle Palette" },
   { radiusPalette,  "Radius Palette" },
@@ -214,9 +220,6 @@ PatternAndNameList patterns = {
   { blackAndBlueNoise, "Black & Blue Noise" },
 
   { drawAnalogClock, "Analog Clock" },
-
-  { pridePlayground,        "Pride Playground" },
-  { colorWavesPlayground,   "Color Waves Playground" },
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },
