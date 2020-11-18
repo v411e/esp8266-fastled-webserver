@@ -63,14 +63,13 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
 #include "FSBrowser.h"
 
-#define DATA_PIN D5
-#define LED_TYPE WS2812B
-#define COLOR_ORDER GRB
-#define NUM_LEDS 256
-#define NUM_LEDS_3 NUM_LEDS * 3
+#define DATA_PIN      D5
+#define LED_TYPE      WS2812B
+#define COLOR_ORDER   GRB
+#define NUM_LEDS      1628
 
-#define MILLI_AMPS 2000       // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
-#define FRAMES_PER_SECOND 120 // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
+#define MILLI_AMPS         2000 // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
+#define FRAMES_PER_SECOND  1000  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
 
 String nameString;
 
@@ -81,6 +80,8 @@ CRGB leds[NUM_LEDS];
 const uint8_t brightnessCount = 5;
 uint8_t brightnessMap[brightnessCount] = { 16, 32, 64, 128, 255 };
 uint8_t brightnessIndex = 0;
+
+uint16_t strandTestIndex = 0;
 
 // ten seconds per color palette makes a good demo
 // 20-120 is better for deployment
@@ -176,9 +177,8 @@ typedef PatternAndName PatternAndNameList[];
 #include "Twinkles.h"
 #include "TwinkleFOX.h"
 #include "Map.h"
-//#include "Noise.h"
+#include "Noise.h"
 #include "Pacifica.h"
-#include "PacificaFibonacci.h"
 #include "PridePlayground.h"
 #include "ColorWavesPlayground.h"
 
@@ -186,25 +186,14 @@ typedef PatternAndName PatternAndNameList[];
 
 PatternAndNameList patterns = {
   { pride,                  "Pride" },
-  { prideFibonacci,         "Pride Fibonacci" },
   { colorWaves,             "Color Waves" },
-  { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
-   { pridePlayground,         "Pride Playground" },
-  { pridePlaygroundFibonacci, "Pride Playground Fibonacci" },
-
-  { colorWavesPlayground,          "Color Waves Playground" },
-  { colorWavesPlaygroundFibonacci, "Color Waves Playground Fibonacci" },
+  { pridePlayground,         "Pride Playground" },
+  { colorWavesPlayground,    "Color Waves Playground" },
 
   { wheel, "Wheel" },
 
-  { swirlFibonacci, "Swirl Fibonacci"},
-  { fireFibonacci, "Fire Fibonacci" },
-  { waterFibonacci, "Water Fibonacci" },
-  { emitterFibonacci, "Emitter Fibonacci" },
-
   { pacifica_loop,           "Pacifica" },
-  { pacifica_fibonacci_loop, "Pacifica Fibonacci" },
 
   // matrix patterns
   { anglePalette,  "Angle Palette" },
@@ -213,36 +202,28 @@ PatternAndNameList patterns = {
   { yPalette,  "Y Axis Palette" },
   { xyPalette, "XY Axis Palette" },
 
+  { radarSweepPalette, "Radar Sweep Palette" },
+
   { angleGradientPalette,  "Angle Gradient Palette" },
   { radiusGradientPalette,  "Radius Gradient Palette" },
   { xGradientPalette,  "X Axis Gradient Palette" },
   { yGradientPalette,  "Y Axis Gradient Palette" },
   { xyGradientPalette, "XY Axis Gradient Palette" },
 
-  //  // noise patterns
-  //  { fireNoise, "Fire Noise" },
-  //  { fireNoise2, "Fire Noise 2" },
-  //  { lavaNoise, "Lava Noise" },
-  //  { rainbowNoise, "Rainbow Noise" },
-  //  { rainbowStripeNoise, "Rainbow Stripe Noise" },
-  //  { partyNoise, "Party Noise" },
-  //  { forestNoise, "Forest Noise" },
-  //  { cloudNoise, "Cloud Noise" },
-  //  { oceanNoise, "Ocean Noise" },
-  //  { blackAndWhiteNoise, "Black & White Noise" },
-  //  { blackAndBlueNoise, "Black & Blue Noise" },
+   // noise patterns
+   { fireNoise, "Fire Noise" },
+   { fireNoise2, "Fire Noise 2" },
+   { lavaNoise, "Lava Noise" },
+   { rainbowNoise, "Rainbow Noise" },
+   { rainbowStripeNoise, "Rainbow Stripe Noise" },
+   { partyNoise, "Party Noise" },
+   { forestNoise, "Forest Noise" },
+   { cloudNoise, "Cloud Noise" },
+   { oceanNoise, "Ocean Noise" },
+   { blackAndWhiteNoise, "Black & White Noise" },
+   { blackAndBlueNoise, "Black & Blue Noise" },
 
   { drawAnalogClock, "Analog Clock" },
-
-  { drawSpiralAnalogClock13,  "Spiral Analog Clock 13" },
-  { drawSpiralAnalogClock21,  "Spiral Analog Clock 21" },
-  { drawSpiralAnalogClock34,  "Spiral Analog Clock 34" },
-  { drawSpiralAnalogClock55,  "Spiral Analog Clock 55" },
-  { drawSpiralAnalogClock89,  "Spiral Analog Clock 89" },
-
-  { drawSpiralAnalogClock21and34, "Spiral Analog Clock 21 & 34"},
-  { drawSpiralAnalogClock13_21_and_34, "Spiral Analog Clock 13, 21 & 34"},
-  { drawSpiralAnalogClock34_21_and_13, "Spiral Analog Clock 34, 21 & 13"},
 
   { pridePlayground,        "Pride Playground" },
   { colorWavesPlayground,   "Color Waves Playground" },
@@ -343,7 +324,7 @@ void setup() {
                  String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
   macID.toUpperCase();
 
-  nameString = "Fibonacci256-" + macID;
+  nameString = "ESP8266-" + macID;
 
   char nameChar[nameString.length() + 1];
   memset(nameChar, 0, nameString.length() + 1);
@@ -511,6 +492,14 @@ void setup() {
     sendInt(clockBackgroundFade);
   });
 
+  webServer.on("/strandTestIndex", HTTP_GET, []() {
+    String value = webServer.arg("value");
+    strandTestIndex = value.toInt();
+    if(strandTestIndex >= NUM_LEDS) strandTestIndex = NUM_LEDS - 1;
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
+    sendInt16(strandTestIndex);
+  });
+
   //list directory
   webServer.on("/list", HTTP_GET, handleFileList);
   //load editor
@@ -546,6 +535,11 @@ void setup() {
 }
 
 void sendInt(uint8_t value)
+{
+  sendString(String(value));
+}
+
+void sendInt16(uint16_t value)
 {
   sendString(String(value));
 }
@@ -1079,15 +1073,9 @@ void setBrightness(uint8_t value)
 
 void strandTest()
 {
-  uint8_t i = speed;
-
-  if (i >= NUM_LEDS) {
-    i = NUM_LEDS - 1;
-  };
-
   fill_solid(leds, NUM_LEDS, CRGB::Black);
 
-  leds[i] = solidColor;
+  leds[strandTestIndex] = solidColor;
 }
 
 void showSolidColor()
@@ -1197,14 +1185,10 @@ void water()
 // This function draws rainbows with an ever-changing,
 // widely-varying set of parameters.
 void pride() {
-  fillWithPride(false);
+  fillWithPride();
 }
 
-void prideFibonacci() {
-  fillWithPride(true);
-}
-
-void fillWithPride(bool useFibonacciOrder) {
+void fillWithPride() {
   static uint16_t sPseudotime = 0;
   static uint16_t sLastMillis = 0;
   static uint16_t sHue16 = 0;
@@ -1239,8 +1223,6 @@ void fillWithPride(bool useFibonacciOrder) {
 
     uint16_t pixelnumber = i;
 
-    if (useFibonacciOrder) pixelnumber = fibonacciToPhysical[i];
-
     pixelnumber = (NUM_LEDS - 1) - pixelnumber;
 
     nblend( leds[pixelnumber], newcolor, 64);
@@ -1251,14 +1233,14 @@ void radialPaletteShift()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
     // leds[i] = ColorFromPalette( gCurrentPalette, gHue + sin8(i*16), brightness);
-    leds[fibonacciToPhysical[i]] = ColorFromPalette(gCurrentPalette, i + gHue, 255, LINEARBLEND);
+    leds[radii[i]] = ColorFromPalette(gCurrentPalette, i + gHue, 255, LINEARBLEND);
   }
 }
 
 void radialPaletteShiftOutward()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[fibonacciToPhysical[i]] = ColorFromPalette(gCurrentPalette, i - gHue, 255, LINEARBLEND);
+    leds[radii[i]] = ColorFromPalette(gCurrentPalette, i - gHue, 255, LINEARBLEND);
   }
 }
 
@@ -1335,17 +1317,13 @@ uint8_t beatsaw8( accum88 beats_per_minute, uint8_t lowest = 0, uint8_t highest 
 }
 
 void colorWaves() {
-  fillWithColorWaves(leds, NUM_LEDS, gCurrentPalette, false);
-}
-
-void colorWavesFibonacci() {
-  fillWithColorWaves(leds, NUM_LEDS, gCurrentPalette, true);
+  fillWithColorWaves(leds, NUM_LEDS, gCurrentPalette);
 }
 
 // ColorWavesWithPalettes by Mark Kriegsman: https://gist.github.com/kriegsman/8281905786e8b2632aeb
 // This function draws color waves with an ever-changing,
 // widely-varying set of parameters, using a color palette.
-void fillWithColorWaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palette, bool useFibonacciOrder)
+void fillWithColorWaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palette)
 {
   static uint16_t sPseudotime = 0;
   static uint16_t sLastMillis = 0;
@@ -1391,8 +1369,6 @@ void fillWithColorWaves( CRGB* ledarray, uint16_t numleds, CRGBPalette16& palett
 
     uint16_t pixelnumber = i;
 
-    if (useFibonacciOrder) pixelnumber = fibonacciToPhysical[i];
-
     pixelnumber = (numleds - 1) - pixelnumber;
 
     nblend( ledarray[pixelnumber], newcolor, 128);
@@ -1406,96 +1382,6 @@ void palettetest( CRGB* ledarray, uint16_t numleds, const CRGBPalette16& gCurren
   static uint8_t startindex = 0;
   startindex--;
   fill_palette( ledarray, numleds, startindex, (256 / NUM_LEDS) + 1, gCurrentPalette, 255, LINEARBLEND);
-}
-
-void swirlFibonacci() {
-
-  const float z = 2.5; // zoom (2.0)
-  const float w = 3.0; // number of wings (3)
-  const float p_min = 0.1; const float p_max = 2.0; // puff up (default: 1.0)
-  const float d_min = 0.1; const float d_max = 2.0; // dent (default: 0.5)
-  const float s_min = -3.0; const float s_max = 2.0; // swirl (default: -2.0)
-  const float g_min = 0.1; const float g_max = 0.5; // glow (default: 0.2)
-  const float b = 240; // inverse brightness (240)
-
-  const float p = p_min + beatsin88(13*speed) / (float)UINT16_MAX * (p_max - p_min);
-  const float d = d_min + beatsin88(17*speed) / (float)UINT16_MAX * (d_max - d_min);
-  const float s = s_min + beatsin88(7*speed) / (float)UINT16_MAX * (s_max - s_min);
-  const float g = g_min + beatsin88(27*speed) / (float)UINT16_MAX * (g_max - g_min);
-
-  CRGBPalette16 palette( gGradientPalettes[1] ); // es_rivendell_15_gp
-
-  for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    float r = physicalToFibonacci[i] / 256.0 * z;
-    float a = (angles[i] + (beat88(3*speed)>>3)) / 256.0 * TWO_PI;
-    float v = r - p + d * sin(w * a + s * r * r);
-    float c = 255 - b * pow(fabs(v), g);
-    if (c < 0) c = 0;
-    else if (c > 255) c = 255;
-
-    leds[i] = ColorFromPalette(palette, (uint8_t)c);
-  }
-}
-
-void fireFibonacci() {
-  for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    uint16_t x = coordsX[i];
-    uint16_t y = coordsY[i];
-
-    uint8_t n = qsub8( inoise8((x << 2) - beat88(speed << 2), (y << 2)), x );
-
-    leds[i] = ColorFromPalette(HeatColors_p, n);
-  }
-}
-
-void waterFibonacci() {
-  for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    uint16_t x = coordsX[i];
-    uint16_t y = coordsY[i];
-
-    uint8_t n = inoise8((x << 2) + beat88(speed << 2), (y << 4));
-
-    leds[i] = ColorFromPalette(IceColors_p, n);
-  }
-}
-
-/**
- * Emits arcs of color spreading out from the center to the edge of the disc.
- */
-void emitterFibonacci() {
-  static CRGB ledBuffer[NUM_LEDS]; // buffer for better fade behavior
-  const uint8_t dAngle = 32; // angular span of the traces
-  const uint8_t dRadius = 12; // radial width of the traces
-  const uint8_t vSpeed = 16; // max speed variation
-
-  static const uint8_t eCount = 7; // Number of simultanious traces
-  static uint8_t angle[eCount]; // individual trace angles
-  static uint16_t timeOffset[eCount]; // individual offsets from beat8() function
-  static uint8_t speedOffset[eCount]; // individual speed offsets limited by vSpeed
-  static uint8_t sparkIdx = 0; // randomizer cycles through traces to spark new ones
-
-  // spark new trace
-  EVERY_N_MILLIS(20) {
-    if (random8(17) <= (speed >> 4)) { // increase change rate for higher speeds
-      angle[sparkIdx] = random8();
-      speedOffset[sparkIdx] = random8(vSpeed); // individual speed variation
-      timeOffset[sparkIdx] = beat8(qadd8(speed,speedOffset[sparkIdx]));
-      sparkIdx = addmod8(sparkIdx, 1, eCount); // continue randomizer at next spark
-    }
-  }
-
-  // fade traces
-  fadeToBlackBy( ledBuffer, NUM_LEDS, 6 + (speed >> 3));
-
-  // draw traces
-  for (uint8_t e = 0; e < eCount; e++) {
-    uint8_t startRadius = sub8(beat8(qadd8(speed, speedOffset[e])), timeOffset[e]);
-    uint8_t endRadius = add8(startRadius, dRadius + (speed>>5)); // increase radial width for higher speeds
-    antialiasPixelAR(angle[e], dAngle, startRadius, endRadius, ColorFromPalette(gCurrentPalette, startRadius), ledBuffer);
-  }
-
-  // copy buffer to actual strip
-  memcpy(leds, ledBuffer, NUM_LEDS_3);
 }
 
 void wheel() {
