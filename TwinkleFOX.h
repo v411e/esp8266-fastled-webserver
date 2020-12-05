@@ -85,7 +85,7 @@ CRGB gBackgroundColor = CRGB::Black;
 // If COOL_LIKE_INCANDESCENT is set to 1, colors will
 // fade out slighted 'reddened', similar to how
 // incandescent bulbs change color as they get dim down.
-#define COOL_LIKE_INCANDESCENT 1
+uint8_t coolLikeIncandescent = 1;
 
 CRGBPalette16 twinkleFoxPalette;
 
@@ -112,7 +112,7 @@ uint8_t attackDecayWave8( uint8_t i)
 // This function takes a pixel, and if its in the 'fading down'
 // part of the cycle, it adjusts the color a little bit like the
 // way that incandescent bulbs fade toward 'red' as they dim.
-void coolLikeIncandescent( CRGB& c, uint8_t phase)
+void doCoolLikeIncandescent( CRGB& c, uint8_t phase)
 {
   if( phase < 128) return;
 
@@ -148,8 +148,8 @@ CRGB computeOneTwinkle( uint32_t ms, uint8_t salt)
   CRGB c;
   if( bright > 0) {
     c = ColorFromPalette( twinkleFoxPalette, hue, bright, NOBLEND);
-    if( COOL_LIKE_INCANDESCENT == 1 ) {
-      coolLikeIncandescent( c, fastcycle8);
+    if( coolLikeIncandescent == 1 ) {
+      doCoolLikeIncandescent( c, fastcycle8);
     }
   } else {
     c = CRGB::Black;

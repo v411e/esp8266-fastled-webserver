@@ -326,6 +326,8 @@ void setup() {
   webServer.on("/cooling", HTTP_POST, []() {
     String value = webServer.arg("value");
     cooling = value.toInt();
+    EEPROM.write(11, cooling);
+    EEPROM.commit();
     broadcastInt("cooling", cooling);
     webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(cooling);
@@ -334,6 +336,8 @@ void setup() {
   webServer.on("/sparking", HTTP_POST, []() {
     String value = webServer.arg("value");
     sparking = value.toInt();
+    EEPROM.write(12, sparking);
+    EEPROM.commit();
     broadcastInt("sparking", sparking);
     webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(sparking);
@@ -352,6 +356,8 @@ void setup() {
     twinkleSpeed = value.toInt();
     if (twinkleSpeed < 0) twinkleSpeed = 0;
     else if (twinkleSpeed > 8) twinkleSpeed = 8;
+    EEPROM.write(9, twinkleSpeed);
+    EEPROM.commit();
     broadcastInt("twinkleSpeed", twinkleSpeed);
     webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(twinkleSpeed);
@@ -362,9 +368,22 @@ void setup() {
     twinkleDensity = value.toInt();
     if (twinkleDensity < 0) twinkleDensity = 0;
     else if (twinkleDensity > 8) twinkleDensity = 8;
+    EEPROM.write(10, twinkleDensity);
+    EEPROM.commit();
     broadcastInt("twinkleDensity", twinkleDensity);
     webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(twinkleDensity);
+  });
+
+  webServer.on("/coolLikeIncandescent", HTTP_POST, []() {
+    String value = webServer.arg("value");
+    coolLikeIncandescent = value.toInt();
+    if (coolLikeIncandescent < 0) coolLikeIncandescent = 0;
+    else if (coolLikeIncandescent > 1) coolLikeIncandescent = 1;
+    EEPROM.write(13, coolLikeIncandescent);
+    EEPROM.commit();
+    broadcastInt("coolLikeIncandescent", coolLikeIncandescent);
+    sendInt(coolLikeIncandescent);
   });
 
   webServer.on("/solidColor", HTTP_POST, []() {
@@ -828,6 +847,14 @@ void loadSettings()
     currentPaletteIndex = 0;
   else if (currentPaletteIndex >= paletteCount)
     currentPaletteIndex = paletteCount - 1;
+
+  twinkleSpeed = EEPROM.read(9);
+  twinkleDensity = EEPROM.read(10);
+
+  cooling = EEPROM.read(11);
+  sparking = EEPROM.read(12);
+
+  coolLikeIncandescent = EEPROM.read(13);
 }
 
 void setPower(uint8_t value)
