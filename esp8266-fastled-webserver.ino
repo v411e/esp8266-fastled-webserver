@@ -66,8 +66,7 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 #define DATA_PIN D5
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
-#define NUM_LEDS 256
-#define NUM_LEDS_3 NUM_LEDS * 3
+#define NUM_LEDS 512
 
 #define MILLI_AMPS 2000       // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
 #define FRAMES_PER_SECOND 120 // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
@@ -190,7 +189,7 @@ PatternAndNameList patterns = {
   { colorWaves,             "Color Waves" },
   { colorWavesFibonacci,    "Color Waves Fibonacci" },
 
-   { pridePlayground,         "Pride Playground" },
+  { pridePlayground,         "Pride Playground" },
   { pridePlaygroundFibonacci, "Pride Playground Fibonacci" },
 
   { colorWavesPlayground,          "Color Waves Playground" },
@@ -201,7 +200,6 @@ PatternAndNameList patterns = {
   { swirlFibonacci, "Swirl Fibonacci"},
   { fireFibonacci, "Fire Fibonacci" },
   { waterFibonacci, "Water Fibonacci" },
-  { emitterFibonacci, "Emitter Fibonacci" },
 
   { pacifica_loop,           "Pacifica" },
   { pacifica_fibonacci_loop, "Pacifica Fibonacci" },
@@ -243,9 +241,6 @@ PatternAndNameList patterns = {
   { drawSpiralAnalogClock21and34, "Spiral Analog Clock 21 & 34"},
   { drawSpiralAnalogClock13_21_and_34, "Spiral Analog Clock 13, 21 & 34"},
   { drawSpiralAnalogClock34_21_and_13, "Spiral Analog Clock 34, 21 & 13"},
-
-  { pridePlayground,        "Pride Playground" },
-  { colorWavesPlayground,   "Color Waves Playground" },
 
   // twinkle patterns
   { rainbowTwinkles,        "Rainbow Twinkles" },
@@ -343,7 +338,7 @@ void setup() {
                  String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
   macID.toUpperCase();
 
-  nameString = "Fibonacci256-" + macID;
+  nameString = "Fibonacci512-" + macID;
 
   char nameChar[nameString.length() + 1];
   memset(nameChar, 0, nameString.length() + 1);
@@ -1457,45 +1452,6 @@ void waterFibonacci() {
 
     leds[i] = ColorFromPalette(IceColors_p, n);
   }
-}
-
-/**
- * Emits arcs of color spreading out from the center to the edge of the disc.
- */
-void emitterFibonacci() {
-  static CRGB ledBuffer[NUM_LEDS]; // buffer for better fade behavior
-  const uint8_t dAngle = 32; // angular span of the traces
-  const uint8_t dRadius = 12; // radial width of the traces
-  const uint8_t vSpeed = 16; // max speed variation
-
-  static const uint8_t eCount = 7; // Number of simultanious traces
-  static uint8_t angle[eCount]; // individual trace angles
-  static uint16_t timeOffset[eCount]; // individual offsets from beat8() function
-  static uint8_t speedOffset[eCount]; // individual speed offsets limited by vSpeed
-  static uint8_t sparkIdx = 0; // randomizer cycles through traces to spark new ones
-
-  // spark new trace
-  EVERY_N_MILLIS(20) {
-    if (random8(17) <= (speed >> 4)) { // increase change rate for higher speeds
-      angle[sparkIdx] = random8();
-      speedOffset[sparkIdx] = random8(vSpeed); // individual speed variation
-      timeOffset[sparkIdx] = beat8(qadd8(speed,speedOffset[sparkIdx]));
-      sparkIdx = addmod8(sparkIdx, 1, eCount); // continue randomizer at next spark
-    }
-  }
-
-  // fade traces
-  fadeToBlackBy( ledBuffer, NUM_LEDS, 6 + (speed >> 3));
-
-  // draw traces
-  for (uint8_t e = 0; e < eCount; e++) {
-    uint8_t startRadius = sub8(beat8(qadd8(speed, speedOffset[e])), timeOffset[e]);
-    uint8_t endRadius = add8(startRadius, dRadius + (speed>>5)); // increase radial width for higher speeds
-    antialiasPixelAR(angle[e], dAngle, startRadius, endRadius, ColorFromPalette(gCurrentPalette, startRadius), ledBuffer);
-  }
-
-  // copy buffer to actual strip
-  memcpy(leds, ledBuffer, NUM_LEDS_3);
 }
 
 void wheel() {
