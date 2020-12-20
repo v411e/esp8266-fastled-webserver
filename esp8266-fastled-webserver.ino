@@ -178,6 +178,7 @@ typedef PatternAndName PatternAndNameList[];
 #include "TwinkleFOX.h"
 #include "Map.h"
 #include "Noise.h"
+#include "PolarNoise.h"
 #include "Pacifica.h"
 #include "PridePlayground.h"
 #include "ColorWavesPlayground.h"
@@ -210,19 +211,32 @@ PatternAndNameList patterns = {
   { yGradientPalette,  "Y Axis Gradient Palette" },
   { xyGradientPalette, "XY Axis Gradient Palette" },
 
-   // noise patterns
-   { fireNoise, "Fire Noise" },
-   { fireNoise2, "Fire Noise 2" },
-   { lavaNoise, "Lava Noise" },
-   { rainbowNoise, "Rainbow Noise" },
-   { rainbowStripeNoise, "Rainbow Stripe Noise" },
-   { partyNoise, "Party Noise" },
-   { forestNoise, "Forest Noise" },
-   { cloudNoise, "Cloud Noise" },
-   { oceanNoise, "Ocean Noise" },
-   { blackAndWhiteNoise, "Black & White Noise" },
-   { blackAndBlueNoise, "Black & Blue Noise" },
-
+  // noise patterns (XY and Polar variations)
+  { gradientPalettePolarNoise, "Gradient Palette Polar Noise" },
+  { palettePolarNoise, "Palette Polar Noise" },
+  { fireNoise, "Fire Noise" },
+  { firePolarNoise, "Fire Polar Noise" },
+  { fireNoise2, "Fire Noise 2" },
+  { firePolarNoise2, "Fire Polar Noise 2" },
+  { lavaNoise, "Lava Noise" },
+  { lavaPolarNoise, "Lava Polar Noise" },
+  { rainbowNoise, "Rainbow Noise" },
+  { rainbowPolarNoise, "Rainbow Polar Noise" },
+  { rainbowStripeNoise, "Rainbow Stripe Noise" },
+  { rainbowStripePolarNoise, "Rainbow Stripe Polar Noise" },
+  { partyNoise, "Party Noise" },
+  { partyPolarNoise, "Party Polar Noise" },
+  { forestNoise, "Forest Noise" },
+  { forestPolarNoise, "Forest Polar Noise" },
+  { cloudNoise, "Cloud Noise" },
+  { cloudPolarNoise, "Cloud Polar Noise" },
+  { oceanNoise, "Ocean Noise" },
+  { oceanPolarNoise, "Ocean Polar Noise" },
+  { blackAndWhiteNoise, "Black & White Noise" },
+  { blackAndWhitePolarNoise, "Black & White Polar Noise" },
+  { blackAndBlueNoise, "Black & Blue Noise" },
+  { blackAndBluePolarNoise, "Black & Blue Polar Noise" },
+  
   { drawAnalogClock, "Analog Clock" },
 
   { pridePlayground,        "Pride Playground" },
