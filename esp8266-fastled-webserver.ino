@@ -55,7 +55,7 @@ ESP8266WebServer webServer(80);
 //WebSocketsServer webSocketsServer = WebSocketsServer(81);
 ESP8266HTTPUpdateServer httpUpdateServer;
 
-const long utcOffsetInSeconds = -5 * 60 * 60;
+const long utcOffsetInSeconds = -6 * 60 * 60;
 
 // Define NTP Client to get time
 WiFiUDP ntpUDP;
@@ -176,7 +176,7 @@ typedef PatternAndName PatternAndNameList[];
 #include "Twinkles.h"
 #include "TwinkleFOX.h"
 #include "Map.h"
-//#include "Noise.h"
+#include "Noise.h"
 #include "Pacifica.h"
 #include "PacificaFibonacci.h"
 #include "PridePlayground.h"
@@ -219,18 +219,18 @@ PatternAndNameList patterns = {
   { yGradientPalette,  "Y Axis Gradient Palette" },
   { xyGradientPalette, "XY Axis Gradient Palette" },
 
-  //  // noise patterns
-  //  { fireNoise, "Fire Noise" },
-  //  { fireNoise2, "Fire Noise 2" },
-  //  { lavaNoise, "Lava Noise" },
-  //  { rainbowNoise, "Rainbow Noise" },
-  //  { rainbowStripeNoise, "Rainbow Stripe Noise" },
-  //  { partyNoise, "Party Noise" },
-  //  { forestNoise, "Forest Noise" },
-  //  { cloudNoise, "Cloud Noise" },
-  //  { oceanNoise, "Ocean Noise" },
-  //  { blackAndWhiteNoise, "Black & White Noise" },
-  //  { blackAndBlueNoise, "Black & Blue Noise" },
+   // noise patterns
+   { fireNoise, "Fire Noise" },
+   { fireNoise2, "Fire Noise 2" },
+   { lavaNoise, "Lava Noise" },
+   { rainbowNoise, "Rainbow Noise" },
+   { rainbowStripeNoise, "Rainbow Stripe Noise" },
+   { partyNoise, "Party Noise" },
+   { forestNoise, "Forest Noise" },
+   { cloudNoise, "Cloud Noise" },
+   { oceanNoise, "Ocean Noise" },
+   { blackAndWhiteNoise, "Black & White Noise" },
+   { blackAndBlueNoise, "Black & Blue Noise" },
 
   { drawAnalogClock, "Analog Clock" },
 
@@ -577,7 +577,7 @@ void loop() {
   webServer.handleClient();
   MDNS.update();
 
-  // timeClient.update();
+  timeClient.update();
 
   static bool hasConnected = false;
   EVERY_N_SECONDS(1) {

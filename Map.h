@@ -222,9 +222,9 @@ void drawAnalogClock() {
   static uint8_t secondAngle = 255 - second * degreesPerSecond;
 
   EVERY_N_MILLIS(100) {
-    hourAngle = 255 - hour * degreesPerHour;
-    minuteAngle = 255 - minute * degreesPerMinute;
-    secondAngle = 255 - second * degreesPerSecond;
+    hourAngle = 64 - hour * degreesPerHour;
+    minuteAngle = 64 - minute * degreesPerMinute;
+    secondAngle = 64 - second * degreesPerSecond;
   }
 
   fadeToBlackBy(leds, NUM_LEDS, clockBackgroundFade);

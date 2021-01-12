@@ -89,9 +89,9 @@ void SetupBlackAndBlueStripedPalette()
 
 void drawNoise(CRGBPalette16 palette, uint8_t hueReduce = 0)
 {
-  for (uint8_t i = 0; i < NUM_LEDS; i++) {
-    uint8_t x = coordsX[i];
-    uint8_t y = coordsY[i];
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    uint16_t x = coordsX[i];
+    uint16_t y = coordsY[i];
 
     int xoffset = noisescale * x;
     int yoffset = noisescale * y;
