@@ -92,20 +92,14 @@ String getClockBackgroundFade() {
 void setShowClock(uint8_t value)
 {
   showClock = value == 0 ? 0 : 1;
-
-  EEPROM.write(9, showClock);
-  EEPROM.commit();
-
+  writeAndCommitSettings();
   broadcastInt("showClock", showClock);
 }
 
 void setClockBackgroundFade(uint8_t value)
 {
   clockBackgroundFade = value;
-
-  EEPROM.write(10, clockBackgroundFade);
-  EEPROM.commit();
-
+  writeAndCommitSettings();
   broadcastInt("clockBackgroundFade", clockBackgroundFade);
 }
 
