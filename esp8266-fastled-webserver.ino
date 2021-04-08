@@ -584,8 +584,6 @@ void loop() {
   webServer.handleClient();
   MDNS.update();
 
-  timeClient.update();
-
   static bool hasConnected = false;
   EVERY_N_SECONDS(1) {
     if (WiFi.status() != WL_CONNECTED) {
@@ -603,6 +601,9 @@ void loop() {
       Serial.print(" or http://");
       Serial.print(nameString);
       Serial.println(".local in your browser");
+    }
+    else {
+      timeClient.update();
     }
   }
 
@@ -897,7 +898,7 @@ void readSettings()
 {
   // check for "magic number" so we know settings have been written to EEPROM
   // and it's not just full of random bytes
-  
+
   if (EEPROM.read(511) != 55) {
     return;
   }
