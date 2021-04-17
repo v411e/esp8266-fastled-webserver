@@ -38,6 +38,7 @@ extern "C" {
 //#include <IRremoteESP8266.h>
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager/tree/development
 #include "GradientPalettes.h"
+#include <time.h> // needed for clock function
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
@@ -55,12 +56,14 @@ ESP8266HTTPUpdateServer httpUpdateServer;
 
 #include "FSBrowser.h"
 
-#define DATA_PIN      D5
-#define LED_TYPE      WS2811
-#define COLOR_ORDER   RGB
-#define NUM_LEDS      200
+#define DATA_PIN      2
+#define LED_TYPE      WS2812B
+#define COLOR_ORDER   GRB
+#define NUM_LEDS      256
 
-#define MILLI_AMPS         2000 // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
+//NICHT ÄNDERN!!!!! (Erhöhen des Ampere Wertes kann zu Schäden an den USB Ports unserer Laptops  führen!)
+#define MILLI_AMPS         850 // WICHTIG: NICHT ÄNDERN!!!! IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
+//NICHT ÄNDERN!!!!! (Erhöhen des Ampere Wertes kann zu Schäden an den USB Ports unserer Laptops  führen!)
 #define FRAMES_PER_SECOND  120  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
 
 String nameString;
@@ -177,6 +180,9 @@ PatternAndNameList patterns = {
   { fire,                   "Fire" },
   { water,                  "Water" },
 
+  { _uhr,                   "Uhrzeit" },
+  { rbUhr,                  "Rainbow Uhrzeit" },
+
   { showSolidColor,         "Solid Color" }
 };
 
@@ -213,6 +219,13 @@ const String paletteNames[paletteCount] = {
 };
 
 #include "Fields.h"
+
+// Values used by clock function
+CRGB prevSolidColor;
+uint8_t prevBrightness;
+bool day;
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 3 * 3600;
 
 void setup() {
   WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP    
@@ -321,6 +334,16 @@ void setup() {
     setPower(value.toInt());
     webServer.sendHeader("Access-Control-Allow-Origin", "*");
     sendInt(power);
+    Serial.println("Power set.");
+  });
+
+  webServer.on("/dst", HTTP_POST, []() {
+    String value = webServer.arg("value");
+    setDst(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
+    sendInt(dst);
+    initAndConfigureTime();
+    Serial.println("DST set.");
   });
 
   webServer.on("/cooling", HTTP_POST, []() {
@@ -474,6 +497,19 @@ void setup() {
   //  Serial.println("Web socket server started");
 
   autoPlayTimeout = millis() + (autoplayDuration * 1000);
+
+  // Configure time used by clock function
+  initAndConfigureTime();
+  for (int i = 0; i < 3; i++) {
+    prevSolidColor.raw[i] = 0;
+  }
+  prevBrightness = 0;
+  day = true;
+}
+
+void initAndConfigureTime(){
+  int daylightOffset_sec = dst == 0 ? 3600 : 0;
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 }
 
 void sendInt(uint8_t value)
@@ -838,6 +874,7 @@ void loadSettings()
   }
 
   power = EEPROM.read(5);
+  dst = EEPROM.read(14);
 
   autoplay = EEPROM.read(6);
   autoplayDuration = EEPROM.read(7);
@@ -865,6 +902,17 @@ void setPower(uint8_t value)
   EEPROM.commit();
 
   broadcastInt("power", power);
+}
+
+void setDst(uint8_t value)
+{
+  dst = value == 0 ? 0 : 1;
+
+  EEPROM.write(14, dst);
+  EEPROM.commit();
+
+  broadcastInt("dst", dst);
+  
 }
 
 void setAutoplay(uint8_t value)
@@ -903,7 +951,7 @@ void setSolidColor(uint8_t r, uint8_t g, uint8_t b)
   EEPROM.write(4, b);
   EEPROM.commit();
 
-  setPattern(patternCount - 1);
+  if (currentPatternIndex < patternCount - 3) setPattern(patternCount - 1);
 
   broadcastString("color", String(solidColor.r) + "," + String(solidColor.g) + "," + String(solidColor.b));
 }
@@ -1025,11 +1073,236 @@ void strandTest()
   fill_solid(leds, NUM_LEDS, CRGB::Black);
 
   leds[i] = solidColor;
+  //Serial.print(solidColor);
 }
 
 void showSolidColor()
 {
   fill_solid(leds, NUM_LEDS, solidColor);
+}
+
+// Clock functions
+uint8_t q1(uint8_t i)
+{
+  uint8_t re;
+  if ( (i / 8) & 0x01) {
+    // Odd rows run backwards
+    re = (i / 8 * 8) + i + 7 - (i % 8) * 2 + 8;
+  } else {
+    // Even rows run forwards
+    re = (i / 8 * 8) + i;
+  }
+  return re;
+}
+uint8_t q2(uint8_t i)
+{
+  uint8_t re;
+  if ( (i / 8) & 0x01) {
+    // Odd rows run backwards
+    re = (i / 8 * 8) + i + 7 - (i % 8) * 2;
+  } else {
+    // Even rows run forwards
+    re = (i / 8 * 8) + i + 8;
+  }
+  return re;
+}
+uint8_t q3(uint8_t i)
+{
+  uint8_t re;
+  if ( (i / 8) & 0x01) {
+    // Odd rows run backwards
+    re = (i / 8 * 8) + i + 7 - (i % 8) * 2 + 136;
+  } else {
+    // Even rows run forwards
+    re = (i / 8 * 8) + i + 128;
+  }
+  return re;
+}
+uint8_t q4(uint8_t i)
+{
+  uint8_t re;
+  if ( (i / 8) & 0x01) {
+    // Odd rows run backwards
+    re = (i / 8 * 8) + i + 7 - (i % 8) * 2 + 128;
+  } else {
+    // Even rows run forwards
+    re = (i / 8 * 8) + i + 136;
+  }
+  return re;
+}
+
+void rbUhr() {
+  uhr(1); //1 for rainbow mode
+}
+void _uhr() {
+  uhr(0); //0 for normal mode
+}
+void uhr(uint8_t modus)
+{
+  uint8_t zahl[11][64] = {
+    {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0
+    }, {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 1, 0, 0, 0,
+      0, 0, 0, 1, 1, 0, 0, 0,
+      0, 0, 1, 0, 1, 0, 0, 0,
+      0, 0, 0, 0, 1, 0, 0, 0,
+      0, 0, 0, 0, 1, 0, 0, 0,
+      0, 0, 0, 0, 1, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0
+    }, {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 1, 0, 0, 0, 0, 0,
+      0, 0, 1, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0
+    }, {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0
+    }, {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0
+    }, {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 1, 0, 0, 0, 0, 0,
+      0, 0, 1, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0
+    }, {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 1, 0, 0, 0, 0, 0,
+      0, 0, 1, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0
+    }, {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0
+    }, {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0
+    }, {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 1, 1, 1, 1, 1, 0
+    }, {
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0
+    }
+  };
+  int a = 0;
+  int b = 0;
+  int c = 0;
+  int d = 0;
+  int hour = 0;
+  int minute = 0;
+  if (time(nullptr)) {
+    time_t now = time(nullptr);
+    struct tm *tmp = localtime(&now);
+    hour = tmp->tm_hour;
+    if (hour > 1) {
+      hour = hour - 2;
+    }
+    else {
+      hour = hour == 1 ? 23 : 22;
+    }
+    minute = tmp->tm_min;
+  }
+
+  if (hour > 9) {
+    a = hour > 19 ? 2 : 1;
+    b = hour > 19 ? hour - 20 : hour - 10;
+  } else {
+    a = 10;
+    b = hour;
+  }
+  c = minute / 10 % 10;
+  d = minute % 10;
+  if (hour > 21 || (hour >= 0 && hour < 9) && day == true) {
+    prevSolidColor = solidColor;
+    prevBrightness = brightness;
+    setBrightness(1);
+    setSolidColor(CRGB::Red);
+    day = false;
+    modus = 0; //There is no rainbow at night :D
+  } else if (hour > 8 && hour < 22 && day == false && prevBrightness != 0 && prevSolidColor.r != 0 && prevSolidColor.g != 0 && prevSolidColor.b != 0 ) {
+    setBrightness(prevBrightness);
+    setSolidColor(prevSolidColor);
+    day = true;
+  }
+  for (uint8_t i = 0; i < 64; i++) {
+    if (zahl[a][i] == 1) {
+      leds[q1(i)] = modus == 0 ? solidColor : CHSV(gHue, 255, 255);
+    } else {
+      leds[q1(i)] = CRGB::Black;
+    }
+    if (zahl[b][i] == 1) {
+      leds[q2(i)] = modus == 0 ? solidColor : CHSV(gHue, 255, 255);
+    } else {
+      leds[q2(i)] = CRGB::Black;
+    }
+    if (zahl[c][i] == 1) {
+      leds[q3(i)] = modus == 0 ? solidColor : CHSV(gHue, 255, 255);
+    } else {
+      leds[q3(i)] = CRGB::Black;
+    }
+    if (zahl[d][i] == 1) {
+      leds[q4(i)] = modus == 0 ? solidColor : CHSV(gHue, 255, 255);
+    } else {
+      leds[q4(i)] = CRGB::Black;
+    }
+  }
 }
 
 // Patterns from FastLED example DemoReel100: https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino

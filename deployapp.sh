@@ -4,7 +4,7 @@
 # investigate using a single file to bring in the defaults
 # ip=$(< ip.txt)
 
-ip=${1:-"192.168.86.36"}
+ip=${1:-"192.168.113.20"}
 url="http://$ip/edit"
 
 declare -a filenames=(

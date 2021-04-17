@@ -534,6 +534,7 @@ function postValue(name, value) {
   // TODO: hack for new fields
   const oldFieldNames = [
     "power",
+    "dst",
     "cooling",
     "sparking",
     "speed",

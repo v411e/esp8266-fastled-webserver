@@ -17,6 +17,7 @@
 */
 
 uint8_t power = 1;
+uint8_t dst = 0;
 uint8_t brightness = brightnessMap[brightnessIndex];
 
 //String setPower(String value) {
@@ -28,6 +29,10 @@ uint8_t brightness = brightnessMap[brightnessIndex];
 
 String getPower() {
   return String(power);
+}
+
+String getDst() {
+  return String(dst);
 }
 
 //String setBrightness(String value) {
@@ -246,6 +251,7 @@ FieldList fields = {
     {"name", "Name", LabelFieldType, 0, 0, getName},
 
     {"power", "Power", BooleanFieldType, 0, 1, getPower},
+    {"dst", "Daylight saving time", BooleanFieldType, 0, 1, getDst},
     {"brightness", "Brightness", NumberFieldType, 1, 255, getBrightness},
     {"pattern", "Pattern", SelectFieldType, 0, patternCount, getPattern, getPatterns},
     {"palette", "Palette", SelectFieldType, 0, paletteCount, getPalette, getPalettes},
