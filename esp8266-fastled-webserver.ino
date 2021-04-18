@@ -221,9 +221,7 @@ const String paletteNames[paletteCount] = {
 #include "Fields.h"
 
 // Values used by clock function
-CRGB prevSolidColor;
-uint8_t prevBrightness;
-bool day;
+bool nightmode;
 const char* ntpServer = "pool.ntp.org";
 const long  gmtOffset_sec = 3 * 3600;
 
@@ -500,11 +498,6 @@ void setup() {
 
   // Configure time used by clock function
   initAndConfigureTime();
-  for (int i = 0; i < 3; i++) {
-    prevSolidColor.raw[i] = 0;
-  }
-  prevBrightness = 0;
-  day = true;
 }
 
 void initAndConfigureTime(){
@@ -1269,18 +1262,14 @@ void clock(uint8_t modus)
   }
   c = minute / 10 % 10;
   d = minute % 10;
-  if (hour > 21 || (hour >= 0 && hour < 9) && day == true) {
-    prevSolidColor = solidColor;
-    prevBrightness = brightness;
-    setBrightness(1);
-    setSolidColor(CRGB::Red);
-    day = false;
-    modus = 0; //There is no rainbow at night :D
-  } else if (hour > 8 && hour < 22 && day == false && prevBrightness != 0 && prevSolidColor.r != 0 && prevSolidColor.g != 0 && prevSolidColor.b != 0 ) {
-    setBrightness(prevBrightness);
-    setSolidColor(prevSolidColor);
-    day = true;
+
+  modus = nightmode ? 0 : modus;
+  if (hour > 21 || (hour >= 0 && hour < 9)) {
+    setNightmode(true);
+  } else if (hour > 8 && hour < 22) {
+    setNightmode(false);
   }
+
   for (uint8_t i = 0; i < 64; i++) {
     if (zahl[a][i] == 1) {
       leds[q1(i)] = modus == 0 ? solidColor : CHSV(gHue, 255, 255);
@@ -1302,6 +1291,20 @@ void clock(uint8_t modus)
     } else {
       leds[q4(i)] = CRGB::Black;
     }
+  }
+}
+
+void setNightmode(bool active){
+  nightmode = active;
+  if(active){
+    if(brightness != 1){
+      setBrightness(1);
+    }
+    if(!(solidColor.r == 255 && solidColor.g == 0 && solidColor.b == 0)){
+      setSolidColor(CRGB::Red);
+    }
+  } else{
+    loadSettings();
   }
 }
 
