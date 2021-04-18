@@ -3,6 +3,8 @@ FastLED + ESP8266 Web Server
 
 Control an addressable LED strip with an ESP8266 via a web browser or infrared remote control.
 
+<img src="matrix-clock.jpg" alt="Web App" style="zoom:50%;" />
+
 Hardware
 --------
 
@@ -44,11 +46,12 @@ Features
 * Adjust the brightness
 * Change the display pattern
 * Adjust the color
+* Clock pattern retrieving time via NTP (+nightmode +rgb +dst-compatibility)
 
 Web App
 --------
 
-![Web App](webapp.png)
+<img src="webapp.jpg" alt="Web App" style="zoom:50%;" />
 
 Patterns are requested by the app from the ESP8266, so as new patterns are added, they're automatically listed in the app.
 
