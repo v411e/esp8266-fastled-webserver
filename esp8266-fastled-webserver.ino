@@ -180,8 +180,8 @@ PatternAndNameList patterns = {
   { fire,                   "Fire" },
   { water,                  "Water" },
 
-  { _uhr,                   "Uhrzeit" },
-  { rbUhr,                  "Rainbow Uhrzeit" },
+  { _clock,                 "Clock" },
+  { rbClock,                "Rainbow Clock" },
 
   { showSolidColor,         "Solid Color" }
 };
@@ -1131,13 +1131,13 @@ uint8_t q4(uint8_t i)
   return re;
 }
 
-void rbUhr() {
-  uhr(1); //1 for rainbow mode
+void rbClock() {
+  clock(1); //1 for rainbow mode
 }
-void _uhr() {
-  uhr(0); //0 for normal mode
+void _clock() {
+  clock(0); //0 for normal mode
 }
-void uhr(uint8_t modus)
+void clock(uint8_t modus)
 {
   uint8_t zahl[11][64] = {
     {
