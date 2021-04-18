@@ -24,7 +24,13 @@ or
 
 [![Adafruit NeoPixel Ring](https://www.adafruit.com/images/145x109/1586-00.jpg)](https://www.adafruit.com/product/1586)
 
-[Adafruit NeoPixel Ring]
+[Adafruit NeoPixel Ring](https://www.adafruit.com/product/1586)
+
+or
+
+[![WS2812B](https://staticfloat.de/content/rgb-ws2812b-vs-smb5050-1612622770-article.png)](https://de.aliexpress.com/wholesale?catId=0&initiative_id=SB_20210210120153&SearchText=WS2812B)
+
+[WS2812B](https://de.aliexpress.com/wholesale?catId=0&initiative_id=SB_20210210120153&SearchText=WS2812B)
 
 Other hardware:
 
@@ -50,8 +56,7 @@ Features
 
 Web App
 --------
-
-<img src="webapp.jpg" alt="Web App" style="zoom:50%;" />
+<img src="webapp.jpg" alt="Web App" width="250"/>
 
 Patterns are requested by the app from the ESP8266, so as new patterns are added, they're automatically listed in the app.
 
