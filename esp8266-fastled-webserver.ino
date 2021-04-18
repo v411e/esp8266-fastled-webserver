@@ -344,6 +344,14 @@ void setup() {
     Serial.println("DST set.");
   });
 
+  webServer.on("/autoNightmode", HTTP_POST, []() {
+    String value = webServer.arg("value");
+    setAutoNightmode(value.toInt());
+    webServer.sendHeader("Access-Control-Allow-Origin", "*");
+    sendInt(autoNightmode);
+    Serial.println("Auto nightmode set.");
+  });
+
   webServer.on("/cooling", HTTP_POST, []() {
     String value = webServer.arg("value");
     cooling = value.toInt();
@@ -868,6 +876,7 @@ void loadSettings()
 
   power = EEPROM.read(5);
   dst = EEPROM.read(14);
+  autoNightmode = EEPROM.read(15);
 
   autoplay = EEPROM.read(6);
   autoplayDuration = EEPROM.read(7);
@@ -905,6 +914,17 @@ void setDst(uint8_t value)
   EEPROM.commit();
 
   broadcastInt("dst", dst);
+  
+}
+
+void setAutoNightmode(uint8_t value)
+{
+  autoNightmode = value == 0 ? 0 : 1;
+
+  EEPROM.write(15, autoNightmode);
+  EEPROM.commit();
+
+  broadcastInt("autoNightmode", autoNightmode);
   
 }
 
@@ -1263,11 +1283,13 @@ void clock(uint8_t modus)
   c = minute / 10 % 10;
   d = minute % 10;
 
-  modus = nightmode ? 0 : modus;
-  if (hour > 21 || (hour >= 0 && hour < 9)) {
-    setNightmode(true);
-  } else if (hour > 8 && hour < 22) {
-    setNightmode(false);
+  if (autoNightmode){
+    if (hour > 21 || (hour >= 0 && hour < 9)) {
+      modus = nightmode ? 0 : modus; // There is no rainbow at night :)
+      setNightmode(true);
+    } else if (hour > 8 && hour < 22) {
+      setNightmode(false);
+    }
   }
 
   for (uint8_t i = 0; i < 64; i++) {
@@ -1298,10 +1320,12 @@ void setNightmode(bool active){
   nightmode = active;
   if(active){
     if(brightness != 1){
-      setBrightness(1);
+      brightness = 1;
+      //setBrightness(1);
     }
     if(!(solidColor.r == 255 && solidColor.g == 0 && solidColor.b == 0)){
-      setSolidColor(CRGB::Red);
+      solidColor = CRGB::Red;
+      //setSolidColor(CRGB::Red);
     }
   } else{
     loadSettings();

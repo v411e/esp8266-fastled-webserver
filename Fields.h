@@ -18,6 +18,7 @@
 
 uint8_t power = 1;
 uint8_t dst = 0;
+uint8_t autoNightmode = 1;
 uint8_t brightness = brightnessMap[brightnessIndex];
 
 //String setPower(String value) {
@@ -33,6 +34,10 @@ String getPower() {
 
 String getDst() {
   return String(dst);
+}
+
+String getAutoNightmode() {
+  return String(autoNightmode);
 }
 
 //String setBrightness(String value) {
@@ -252,6 +257,7 @@ FieldList fields = {
 
     {"power", "Power", BooleanFieldType, 0, 1, getPower},
     {"dst", "Daylight saving time", BooleanFieldType, 0, 1, getDst},
+    {"autoNightmode", "Auto nightmode", BooleanFieldType, 0, 1, getAutoNightmode},
     {"brightness", "Brightness", NumberFieldType, 1, 255, getBrightness},
     {"pattern", "Pattern", SelectFieldType, 0, patternCount, getPattern, getPatterns},
     {"palette", "Palette", SelectFieldType, 0, paletteCount, getPalette, getPalettes},

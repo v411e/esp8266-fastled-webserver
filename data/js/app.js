@@ -535,6 +535,7 @@ function postValue(name, value) {
   const oldFieldNames = [
     "power",
     "dst",
+    "autoNightmode",
     "cooling",
     "sparking",
     "speed",
