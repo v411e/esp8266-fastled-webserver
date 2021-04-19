@@ -1321,6 +1321,7 @@ void setNightmode(bool active){
   if(active){
     if(brightness != 1){
       brightness = 1;
+      FastLED.setBrightness(brightness);
       //setBrightness(1);
     }
     if(!(solidColor.r == 255 && solidColor.g == 0 && solidColor.b == 0)){
@@ -1329,6 +1330,7 @@ void setNightmode(bool active){
     }
   } else{
     loadSettings();
+    FastLED.setBrightness(brightness);
   }
 }
 
