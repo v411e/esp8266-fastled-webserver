@@ -1277,7 +1277,7 @@ void clock(uint8_t modus)
     a = hour > 19 ? 2 : 1;
     b = hour > 19 ? hour - 20 : hour - 10;
   } else {
-    a = 10;
+    a = 0;
     b = hour;
   }
   c = minute / 10 % 10;
